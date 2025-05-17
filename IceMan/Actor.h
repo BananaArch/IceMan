@@ -9,7 +9,7 @@
 class Actor : public GraphObject {
 public:
     Actor(int imageID, int x, int y, Direction dir, double size, unsigned int depth) : GraphObject(imageID, x, y, dir, size, depth){}
-    virtual ~Actor() = 0;
+    virtual ~Actor(){}
     virtual void doSomething() = 0; // pure virtual, do something depends on actor
 private:
     
