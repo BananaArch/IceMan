@@ -10,8 +10,7 @@ using namespace std;
   // replace the string literal with a full path name to the directory,
   // e.g., "Z:/CS32/IceMan/Assets" or "/Users/fred/cs32/IceMan/Assets"
 
-
-const string assetDirectory = "Assets";
+const string assetDirectory = "C:\\Users\\alvin\\Source\\Repos\\BananaArch\\IceMan\\IceMan\\Assets";
 const int msPerTick = 10;  // 10ms per tick; increase this if game moves too fast
 
 #ifdef _MSC_VER

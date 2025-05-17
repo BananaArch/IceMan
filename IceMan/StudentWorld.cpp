@@ -1,4 +1,5 @@
 #include "StudentWorld.h"
+#include "Actor.h"
 #include <string>
 using namespace std;
 #include <vector>
@@ -16,7 +17,7 @@ void StudentWorld::startWorld() {
                 ices[x][y] = nullptr;
             }
             else {
-                ices[x][y] = std::make_shared<Ice>(x, y);
+                ices[x][y] = std::make_shared<Ice>(x, y, this);
             }
         }
     }
@@ -25,12 +26,12 @@ void StudentWorld::startWorld() {
         for (int y=0; y<64; y++) {
             if (x >=30 && x <= 33 && y>=4 && y<=59) {
                 field[x][y] = nullptr;
-                 break;
+                break;
             }
             field[x][y] = ices[x][y];
         }
     }
     // initialize the iceman
-    field[30][60] = std::make_shared<Iceman>();
+    field[30][60] = std::make_shared<Iceman>(this);
 }
 // Students:  Add code to this file (if you wish), StudentWorld.h, Actor.h and Actor.cpp
