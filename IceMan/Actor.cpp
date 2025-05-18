@@ -59,3 +59,34 @@ void Iceman::doSomething() {
     }
 }
 
+void RegularProtestor::doSomething() {
+    // TODO: Add actual logic
+}
+
+void HardcoreProtestor::doSomething() {
+    // TODO: Add actual logic
+}
+
+void Boulder::doSomething() {
+    // TODO: Add actual logic
+}
+
+void Spurt::doSomething() {
+    // TODO: Add actual logic
+}
+
+void Pool::doSomething() {
+    // TODO: Add actual logic
+}
+
+void OilBarrel::doSomething() {
+    // TODO: Add actual logic
+}
+
+void Sonar::doSomething() {
+    // TODO: Add actual logic
+}
+
+void Gold::doSomething() {
+    // TODO: Add actual logic
+}
