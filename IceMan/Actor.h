@@ -13,8 +13,9 @@ public:
     Actor(int imageID, int x, int y, Direction dir, double size, unsigned int depth, StudentWorld* world) : GraphObject(imageID, x, y, dir, size, depth), m_world(world) {}
     virtual ~Actor(){}
     virtual void doSomething() = 0; // pure virtual, do something depends on actor
+    StudentWorld* getWorld() const {return m_world;} // getter function for m_world
 private:
-	StudentWorld* m_world; // pointer to the world
+    StudentWorld* m_world; // pointer to the world
 };
 // Ice object
 class Ice : public Actor {
@@ -36,20 +37,20 @@ public:
     // Player spawn at (30, 60) by default
     Iceman(StudentWorld* world) : Actor(IID_PLAYER, 30, 60, right, 1, 0, world) {
         setVisible(true); // display on screen by default
-		hp = 10; // default hp
-		water = 5; // default water
-		gold = 0; // default gold nuggets
-		sonar = 1; // default sonar
+        hp = 10; // default hp
+        water = 5; // default water
+        gold = 0; // default gold nuggets
+        sonar = 1; // default sonar
     }
     // abstract class destructor will handle it
     ~Iceman() {};
     // player control action
-    void doSomething() {}
+    void doSomething() override;
 private:
-	// player state
-	int hp;
-	int water;
-	int gold;
-	int sonar;
+    // player state
+    int hp;
+    int water;
+    int gold;
+    int sonar;
 };
 #endif // ACTOR_H_

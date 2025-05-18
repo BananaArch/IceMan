@@ -24,6 +24,8 @@ public:
     // control each actor every tick
     virtual int move()
     {
+        if (m_player)
+            m_player->doSomething();
         // This code is here merely to allow the game to build, run, and terminate after you hit enter a few times.
         // Notice that the return value GWSTATUS_PLAYER_DIED will cause our framework to end the current level.
         
@@ -35,6 +37,20 @@ public:
     virtual void cleanUp()
     {
     }
+    // getter function for elements in field
+    void getField(int x, int y, std::shared_ptr<Actor>& pos) const {
+        if (x>=0 && y>=0 && x<64 && y<64) {
+            pos = field[x][y];
+            return;
+        }
+        pos = nullptr;
+    }
+    void setField(int x, int y, std::shared_ptr<Actor> pos) {
+        if (x>=0 && y>=0 && x<64 && y<64) {
+            field[x][y] = pos;
+        }
+    }
+    std::shared_ptr<Iceman> getIceman() {return m_player;}
 private:
     // pointer of iceman/player
     std::shared_ptr<Iceman> m_player;

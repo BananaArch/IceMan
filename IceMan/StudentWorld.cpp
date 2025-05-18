@@ -21,17 +21,9 @@ void StudentWorld::startWorld() {
             }
         }
     }
-    //store the ice objects into the main 2d array
-    for (int x=0; x<64; x++) {
-        for (int y=0; y<64; y++) {
-            if (x >=30 && x <= 33 && y>=4 && y<=59) {
-                field[x][y] = nullptr;
-                break;
-            }
-            field[x][y] = ices[x][y];
-        }
-    }
+    // now ice objects no longer store in field 2d array!!
     // initialize the iceman
-    field[30][60] = std::make_shared<Iceman>(this);
+    m_player = std::make_shared<Iceman>(this);
+    field[30][60] = m_player;
 }
 // Students:  Add code to this file (if you wish), StudentWorld.h, Actor.h and Actor.cpp
