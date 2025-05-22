@@ -22,7 +22,7 @@ private:
 // --- Person Base Class Implementation ---
 // Represents the people in the game -- iceman and the protestors
 
-// TODO: Boulder logic 
+// TODO: Boulder logic
 class Person : public Actor {
 public:
     Person(int imageId, int x, int y, Direction dir, double size, unsigned int depth, StudentWorld* world, int hp) : Actor(imageId, x, y, dir, size, depth, world), m_hp(hp) {}
@@ -48,6 +48,8 @@ public:
     ~Iceman() {}
     // player control action
     void doSomething() override;
+    // break ice mechanics
+    void breakIce();
 private:
     // player state
     int m_water;
@@ -173,7 +175,7 @@ private:
 };
 
 // --- Oil Class Implementation ---
-// Represents oil you can pickup 
+// Represents oil you can pickup
 class OilBarrel : public Goodies {
 public:
     OilBarrel(int x, int y, StudentWorld* world) : Goodies(IID_BARREL, x, y, right, 1, 2, world) {}
@@ -197,7 +199,7 @@ private:
 };
 
 // --- Gold Class Implementation ---
-// Represents gold nuggets you can pickup 
+// Represents gold nuggets you can pickup
 class Gold : public Goodies {
 public:
     Gold(int x, int y, StudentWorld* world) : Goodies(IID_GOLD, x, y, right, 1, 2, world) {}

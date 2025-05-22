@@ -24,6 +24,7 @@ public:
     // control each actor every tick
     virtual int move()
     {
+        setStats();
         if (m_player)
             m_player->doSomething();
         // This code is here merely to allow the game to build, run, and terminate after you hit enter a few times.
@@ -36,6 +37,11 @@ public:
     // clean up when player gets unalives or clears the level
     virtual void cleanUp()
     {
+//        for (auto col: ices) {
+//            for (auto cell: col) {
+//                
+//            }
+//        }
     }
     // getter function for elements in field
     void getField(int x, int y, std::shared_ptr<Actor>& pos) const {
@@ -45,12 +51,32 @@ public:
         }
         pos = nullptr;
     }
+    // change element in the field
     void setField(int x, int y, std::shared_ptr<Actor> pos) {
         if (x>=0 && y>=0 && x<64 && y<64) {
             field[x][y] = pos;
         }
     }
+    // getter function for m_player
     std::shared_ptr<Iceman> getIceman() {return m_player;}
+    
+    std::shared_ptr<Actor> getIce(int x, int y, std::shared_ptr<Actor>& pos) {
+        return ices[x][y];
+    }
+    // break the ice in ices
+    bool breakIce(int x, int y) {
+        if (x<0 || x>63 || y<0 || y>63) {
+            return false;
+        }
+        if (ices[x][y]) {
+            ices[x][y]->setVisible(false);
+            ices[x][y] = nullptr;
+            return true;
+        }
+        return false;
+    }
+    
+    
 private:
     // pointer of iceman/player
     std::shared_ptr<Iceman> m_player;
@@ -61,7 +87,6 @@ private:
     // auxilery function for init(), see StudentWorld.cpp
     void startWorld();
     // Display game stats (in progress)
-    void setDisplayText();
-    
+    void setStats();
 };
 #endif // STUDENTWORLD_H_
