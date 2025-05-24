@@ -10,7 +10,7 @@ GameWorld* createStudentWorld(string assetDir)
 // Hello World
 void StudentWorld::startWorld() {
     // intialize 2d array that keep track of all actors
-    field.resize(64, std::vector<std::shared_ptr<Actor> >(64, nullptr));
+    field.resize(64, std::vector<std::shared_ptr<Actor>>(64, nullptr));
     // set up the ice objects on its own 2d ice array
     for (int x=0; x<64; x++) {
         for (int y=0; y<64; y++) {
@@ -27,27 +27,40 @@ void StudentWorld::startWorld() {
     m_player = std::make_shared<Iceman>(this);
     field[30][60] = m_player;
 }
-
+// TODO: replace with the correct getter functions
 void StudentWorld::setStats() {
     int level = getLevel();
     int lives = getLives();
-    int health(100);
+    int health = m_player->getHp() * 10;
     int squirts(0);
     int gold(0);
-    int barrelsLeft(0);
+    int barrelsLeft(0); // Oil left on the field
     int sonar(0);
     string score = to_string(getScore());
     string stats;
-
-    stats = ((level<10) ?"Lvl:  " : "Lvl ") + to_string(level) + ((health<100)? " Hlth:  " : " Hlth: ") + to_string(health) + "% Lives: " + to_string(lives) + ((squirts<10)? " Wtr:  " : " Wtr: ") + to_string(squirts) + " Gld: " + to_string(gold) + ((barrelsLeft<10) ? " Oil Left: " : " Oil Left:  ") + to_string(barrelsLeft) + ((sonar<10) ? " Sonar:  " : " Sonar: ") + to_string(sonar);
-    string score_str = "000000";
+    // stat for game level
+    stats = ((level<10) ?"Lvl:  " : "Lvl ") + to_string(level);
+    // stat for player health bar
+    stats += ((health<100)? " Hlth:  " : " Hlth: ") + to_string(health) + "%";
+    // stat for remaining player lives
+    stats += "Lives: " + to_string(lives);
+    // stat for remaining charges for water gun
+    stats += ((squirts<10)? " Wtr:  " : " Wtr: ") + to_string(squirts);
+    // stat for number of gold
+    stats += " Gld: " + to_string(gold);
+    // stat for oil left on the field
+    stats += ((barrelsLeft<10) ? " Oil Left: " : " Oil Left:  ") + to_string(barrelsLeft);
+    // stat for charges of sonar
+    stats += ((sonar<10) ? " Sonar:  " : " Sonar: ") + to_string(sonar);
+    // stat for score
+    string score_stat = "000000";
     unsigned int j = 6;
     for (int i = score.length(); i >= 0; i--) {
-        score_str[j] = score[i];
+        score_stat[j] = score[i];
         j--;
     }
     
-    stats += " Scr: " + score_str;
+    stats += " Scr: " + score_stat;
 
     setGameStatText(stats);
 }

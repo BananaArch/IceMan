@@ -28,6 +28,7 @@ public:
     Person(int imageId, int x, int y, Direction dir, double size, unsigned int depth, StudentWorld* world, int hp) : Actor(imageId, x, y, dir, size, depth, world), m_hp(hp) {}
     virtual ~Person() {}
     virtual void doSomething() = 0;
+    virtual int getHp() {return m_hp;}
 private:
     int m_hp;
 };
@@ -38,7 +39,7 @@ private:
 class Iceman : public Person {
 public:
     // Player spawn at (30, 60) by default
-    Iceman(StudentWorld* world) : Person(IID_PLAYER, 30, 60, right, 1, 0, world, 10 ) { // last parameter describes default health (10
+    Iceman(StudentWorld* world) : Person(IID_PLAYER, 30, 60, right, 1, 0, world, 10) { // last parameter describes default health (10
         setVisible(true); // display on screen by default
         m_water = 5; // default water
         m_gold = 0; // default gold nuggets

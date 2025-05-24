@@ -11,9 +11,20 @@
 class StudentWorld : public GameWorld
 {
 public:
+    // Constructor
     StudentWorld(std::string assetDir)
         : GameWorld(assetDir)
     {
+    }
+    // Destructor
+    ~StudentWorld() {
+        for (int x=0; x<64; x++) {
+            for (int y=0; y<64; y++) {
+                ices[x][y] = nullptr;
+            }
+        }
+        m_player = nullptr;
+        field.clear();
     }
     // initialize the game/new level
     virtual int init()
@@ -24,6 +35,11 @@ public:
     // control each actor every tick
     virtual int move()
     {
+        // if player died
+        if (m_player && m_player->getHp() == 0) {
+            decLives();
+            return GWSTATUS_PLAYER_DIED;
+        }
         setStats();
         if (m_player)
             m_player->doSomething();
@@ -31,17 +47,17 @@ public:
         // Notice that the return value GWSTATUS_PLAYER_DIED will cause our framework to end the current level.
         
         return GWSTATUS_CONTINUE_GAME;
-//        decLives();
-//        return GWSTATUS_PLAYER_DIED;
     }
     // clean up when player gets unalives or clears the level
     virtual void cleanUp()
     {
-//        for (auto col: ices) {
-//            for (auto cell: col) {
-//                
-//            }
-//        }
+        for (int x=0; x<64; x++) {
+            for (int y=0; y<64; y++) {
+                ices[x][y] = nullptr;
+            }
+        }
+        m_player = nullptr;
+        field.clear();
     }
     // getter function for elements in field
     void getField(int x, int y, std::shared_ptr<Actor>& pos) const {
