@@ -1,8 +1,11 @@
 #include "StudentWorld.h"
 #include "Actor.h"
 #include <string>
-using namespace std;
 #include <vector>
+#include <cstdlib>
+
+using namespace std;
+
 GameWorld* createStudentWorld(string assetDir)
 {
     return new StudentWorld(assetDir);
@@ -26,6 +29,7 @@ void StudentWorld::startWorld() {
     // initialize the iceman
     m_player = std::make_shared<Iceman>(this);
     field[30][60] = m_player;
+    setBoulder();
 }
 // TODO: replace with the correct getter functions
 void StudentWorld::setStats() {
@@ -41,7 +45,7 @@ void StudentWorld::setStats() {
     // stat for game level
     stats = ((level<10) ?"Lvl:  " : "Lvl ") + to_string(level);
     // stat for player health bar
-    stats += ((health<100)? " Hlth:  " : " Hlth: ") + to_string(health) + "%";
+    stats += ((health<100)? " Hlth:  " : " Hlth: ") + to_string(health) + "% ";
     // stat for remaining player lives
     stats += "Lives: " + to_string(lives);
     // stat for remaining charges for water gun
@@ -63,4 +67,49 @@ void StudentWorld::setStats() {
     stats += " Scr: " + score_stat;
 
     setGameStatText(stats);
+}
+
+void StudentWorld::setBoulder() {
+    int level = getLevel();
+    int num = min(level/2 + 2, 9);
+    for (int i = 0; i < num; i++) {
+        int x , y;
+        // reposition if position is invalid
+        do {
+            x = rand() % 61;
+            y = rand() % 61;
+        } while ((x<0 || x>60) || (y<20 || y>56) || checkObjectDist(x, y));
+        
+        for (int i = x; i <= x+3; i++) {
+            for (int j = y; j <= y+3; j++) {
+                breakIce(i, j);
+            }
+        }
+        field[x][y] = make_shared<Boulder>(x, y, this);
+    }
+}
+// check distance between objects to ensure they're not too close
+// **TRUE means not okay, FALSE means the position is fine!**
+bool StudentWorld::checkObjectDist(int x, int y) {
+    // Check if the object is at the tunnel
+    if (x > 29 && x < 34 && y > 3)
+        return true;
+    
+    // Check if objects are 6 units away from each other
+    int dist_x, dist_y;
+    for (int i = max(x-6, 0); i < min(x+6, 61); i++) {
+        for (int j = max(y-6, 0); j < min(y+6, 57); j++) {
+            // if objects are kind of close, check!
+            if (field[i][j] == nullptr) {
+                continue;
+            }
+            dist_x = field[i][j]->getX() - x;
+            dist_y = field[i][j]->getY() - y;
+            int distance = dist_x * dist_x + dist_y * dist_y;
+            if (distance < 36) {
+                return true;
+            }
+        }
+    }
+    return false;
 }

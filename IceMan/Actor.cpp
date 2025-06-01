@@ -1,7 +1,7 @@
 #include "Actor.h"
 #include "StudentWorld.h"
 #include <memory>
-// Students:  Add code to this file (if you wish), Actor.h, StudentWorld.h, and StudentWorld.cpp
+// Iceman move and dig mechanics
 void Iceman::doSomething() {
     int val;
     // reading user input
@@ -63,6 +63,7 @@ void Iceman::doSomething() {
     }
     breakIce();
 }
+
 // Ice breaking mechanics
 void Iceman::breakIce() {
     bool dig = false;

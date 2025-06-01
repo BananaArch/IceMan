@@ -94,9 +94,6 @@ private:
 
 
 
-
-
-
 // --- Object Base Class Implementation ---
 // For physical objects in the game and map -- like rocks, ice, squirt
 class Object : public Actor {
@@ -128,12 +125,14 @@ private:
 // Represents physical boulder on map
 class Boulder : public Object {
 public:
-    Boulder(int x, int y, StudentWorld* world) : Object(IID_BOULDER, x, y, down, 1, 1, world) {}
+    Boulder(int x, int y, StudentWorld* world) : Object(IID_BOULDER, x, y, down, 1, 1, world) {
+        setVisible(true);
+    }
     ~Boulder() {};
-    void doSomething() override;
+    void doSomething() override {};
 
 private:
-
+    bool stable = true;
 };
 
 // --- Spurt Class Implementation ---

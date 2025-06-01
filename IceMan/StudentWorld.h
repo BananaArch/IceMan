@@ -18,6 +18,7 @@ public:
     }
     // Destructor
     ~StudentWorld() {
+        // had runtime error when doing range based loop: Document in Report
         for (int x=0; x<64; x++) {
             for (int y=0; y<64; y++) {
                 ices[x][y] = nullptr;
@@ -48,7 +49,7 @@ public:
         
         return GWSTATUS_CONTINUE_GAME;
     }
-    // clean up when player gets unalives or clears the level
+    // clean up when player got unalived or cleared the level
     virtual void cleanUp()
     {
         for (int x=0; x<64; x++) {
@@ -97,12 +98,16 @@ private:
     // pointer of iceman/player
     std::shared_ptr<Iceman> m_player;
     // main 2d array that keep tracks of all actors on the oil field
-    std::vector<std::vector<std::shared_ptr<Actor> > > field;
+    std::vector<std::vector<std::shared_ptr<Actor>>> field;
     // 2d array that initialize all the ice objects
     std::shared_ptr<Ice> ices[64][64];
     // auxilery function for init(), see StudentWorld.cpp
     void startWorld();
     // Display game stats (in progress)
     void setStats();
+    // Add boulders to the game
+    void setBoulder();
+    // check distance between objects to ensure they're not too close
+    bool checkObjectDist(int x, int y);
 };
 #endif // STUDENTWORLD_H_
