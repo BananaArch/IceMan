@@ -26,6 +26,7 @@ public:
         }
         m_player = nullptr;
         field.clear();
+        dsList.clear();
     }
     // initialize the game/new level
     virtual int init()
@@ -42,8 +43,10 @@ public:
             return GWSTATUS_PLAYER_DIED;
         }
         setStats();
-        if (m_player)
-            m_player->doSomething();
+        for (auto actor : dsList) {
+            if (actor->isAlive())
+                actor->doSomething();
+        }
         // This code is here merely to allow the game to build, run, and terminate after you hit enter a few times.
         // Notice that the return value GWSTATUS_PLAYER_DIED will cause our framework to end the current level.
         
@@ -59,6 +62,7 @@ public:
         }
         m_player = nullptr;
         field.clear();
+        dsList.clear();
     }
     // getter function for elements in field
     void getField(int x, int y, std::shared_ptr<Actor>& pos) const {
@@ -77,7 +81,7 @@ public:
     // getter function for m_player
     std::shared_ptr<Iceman> getIceman() {return m_player;}
     
-    std::shared_ptr<Actor> getIce(int x, int y, std::shared_ptr<Actor>& pos) {
+    std::shared_ptr<Actor> getIce(int x, int y) {
         return ices[x][y];
     }
     // break the ice in ices
@@ -97,10 +101,12 @@ public:
 private:
     // pointer of iceman/player
     std::shared_ptr<Iceman> m_player;
-    // main 2d array that keep tracks of all actors on the oil field
+    // main 2d array that keep tracks of all actors except iceman and ice
     std::vector<std::vector<std::shared_ptr<Actor>>> field;
     // 2d array that initialize all the ice objects
     std::shared_ptr<Ice> ices[64][64];
+    // vector that keep tracks of all actors that can doSomething
+    std::vector<std::shared_ptr<Actor>> dsList;
     // auxilery function for init(), see StudentWorld.cpp
     void startWorld();
     // Display game stats (in progress)

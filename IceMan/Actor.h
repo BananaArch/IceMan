@@ -14,8 +14,11 @@ public:
     virtual ~Actor() {}
     virtual void doSomething() = 0; // pure virtual, do something depends on actor
     StudentWorld* getWorld() const {return m_world;} // getter function for m_world
+    bool isAlive() {return m_alive;}
+    void unalive() {m_alive = false;}
 private:
     StudentWorld* m_world; // pointer to the world
+    bool m_alive = true;
 };
 
 
@@ -28,6 +31,7 @@ public:
     Person(int imageId, int x, int y, Direction dir, double size, unsigned int depth, StudentWorld* world, int hp) : Actor(imageId, x, y, dir, size, depth, world), m_hp(hp) {}
     virtual ~Person() {}
     virtual void doSomething() = 0;
+    virtual void annoyed() = 0;
     virtual int getHp() {return m_hp;}
 private:
     int m_hp;
@@ -51,6 +55,8 @@ public:
     void doSomething() override;
     // break ice mechanics
     void breakIce();
+    // get damaged
+    void annoyed() override {}
 private:
     // player state
     int m_water;
@@ -129,10 +135,11 @@ public:
         setVisible(true);
     }
     ~Boulder() {};
-    void doSomething() override {};
+    void doSomething() override;
 
 private:
     bool stable = true;
+    int fallTimer = 0;
 };
 
 // --- Spurt Class Implementation ---

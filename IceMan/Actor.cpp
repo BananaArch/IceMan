@@ -19,10 +19,8 @@ void Iceman::doSomething() {
                 break;
             }
             // Move the iceman
-            getWorld()->setField(getX(), getY(), nullptr);
             setDirection(left);
             moveTo(getX()-1, getY());
-            getWorld()->setField(getX(), getY(), getWorld()->getIceman());
             break;
             // move right
         case KEY_PRESS_RIGHT:
@@ -30,10 +28,8 @@ void Iceman::doSomething() {
             if (getX() >= 63 || ptr != NULL) {
                 break;
             }
-            getWorld()->setField(getX(), getY(), nullptr);
             setDirection(right);
             moveTo(getX()+1, getY());
-            getWorld()->setField(getX(), getY(), getWorld()->getIceman());
             break;
             // move upwards
         case KEY_PRESS_UP:
@@ -41,10 +37,8 @@ void Iceman::doSomething() {
             if (getY() >= 63 || ptr != NULL) {
                 break;
             }
-            getWorld()->setField(getX(), getY(), nullptr);
             setDirection(up);
             moveTo(getX(), getY()+1);
-            getWorld()->setField(getX(), getY(), getWorld()->getIceman());
             break;
             // move downwards
         case KEY_PRESS_DOWN:
@@ -52,11 +46,8 @@ void Iceman::doSomething() {
             if (getY() <= 0 || ptr != NULL) {
                 break;
             }
-            getWorld()->setField(getX(), getY(), nullptr);
             setDirection(down);
             moveTo(getX(), getY()-1);
-            getWorld()->setField(getX(), getY(), getWorld()->getIceman());
-            
             break;
         default:
             break;
@@ -76,6 +67,49 @@ void Iceman::breakIce() {
     }
     if (dig) {
         getWorld()->playSound(SOUND_DIG);
+    }
+}
+
+void Boulder::doSomething() {
+    if (!stable) {
+        if (fallTimer < 30) {
+            fallTimer++;
+        }
+        else {
+            int x = getX(), y = getY();
+            bool crash = false;
+            // check if the bolder hits the bottom
+            if (y < 0)
+                crash = true;
+            // check if the bolder hits ice
+            for (int i = x; i < x+4; i++) {
+                if (getWorld()->getIce(i, y-1) != nullptr) {
+                    crash = true;
+                }
+            }
+            // Keep falling
+            if (!crash) {
+                moveTo(x, y-1);
+                getWorld()->playSound(SOUND_FALLING_ROCK);
+            }
+            // The boulder crashes and gets destroyed
+            else {
+                unalive();
+                setVisible(false);
+                getWorld()->setField(x, y, nullptr);
+            }
+        }
+    }
+    else {
+        // check if ice below are still there
+        unsigned count{};
+        int y = getY() - 4;
+        for (int x = getX(); x < getX()+4; x++) {
+            if (getWorld()->getIce(x, y) == nullptr)
+                count++;
+        }
+        if (count == 4)
+            stable = false;
     }
 }
 

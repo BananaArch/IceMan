@@ -28,7 +28,8 @@ void StudentWorld::startWorld() {
 
     // initialize the iceman
     m_player = std::make_shared<Iceman>(this);
-    field[30][60] = m_player;
+    dsList.emplace_back(m_player);
+    // field[30][60] = m_player;
     setBoulder();
 }
 // TODO: replace with the correct getter functions
@@ -68,7 +69,7 @@ void StudentWorld::setStats() {
 
     setGameStatText(stats);
 }
-
+// create boulders on field
 void StudentWorld::setBoulder() {
     int level = getLevel();
     int num = min(level/2 + 2, 9);
@@ -78,14 +79,17 @@ void StudentWorld::setBoulder() {
         do {
             x = rand() % 61;
             y = rand() % 61;
-        } while ((x<0 || x>60) || (y<20 || y>56) || checkObjectDist(x, y));
+        } while ((x<0 || x>60) || (y<20 || y>56) || (x > 26 && x < 37)
+                 || checkObjectDist(x, y));
         
         for (int i = x; i <= x+3; i++) {
             for (int j = y; j <= y+3; j++) {
                 breakIce(i, j);
             }
         }
-        field[x][y] = make_shared<Boulder>(x, y, this);
+        auto newBoulder = make_shared<Boulder>(x, y, this);
+        field[x][y] = newBoulder;
+        dsList.emplace_back(newBoulder);
     }
 }
 // check distance between objects to ensure they're not too close
