@@ -1,6 +1,7 @@
 #include "Actor.h"
 #include "StudentWorld.h"
 #include <memory>
+using namespace std;
 // Iceman move and dig mechanics
 void Iceman::doSomething() {
     int val;
@@ -87,6 +88,16 @@ void Boulder::doSomething() {
                     crash = true;
                 }
             }
+            // check if the bolder hits bolder
+            for (auto b : getWorld()->getBoulders()) {
+                if ((b->getX() <= x && b->getX() + 3 >= x) && b->getY() == this->getY()-4) {
+                        crash = true;
+                }
+            }
+            // check if the bolder hits player
+            if ((getWorld()->getIceman()->getX() <= x && getWorld()->getIceman()->getX() + 3 >= x) && getWorld()->getIceman()->getY() == this->getY()-4) {
+                getWorld()->getIceman()->annoyed(10);
+            }
             // Keep falling
             if (!crash) {
                 moveTo(x, y-1);
@@ -96,20 +107,38 @@ void Boulder::doSomething() {
             else {
                 unalive();
                 setVisible(false);
-                getWorld()->setField(x, y, nullptr);
             }
         }
     }
     else {
         // check if ice below are still there
-        unsigned count{};
-        int y = getY() - 4;
+        unsigned count = 0;
+        int y = getY() - 1;
         for (int x = getX(); x < getX()+4; x++) {
             if (getWorld()->getIce(x, y) == nullptr)
                 count++;
         }
-        if (count == 4)
+        if (count == 4) {
             stable = false;
+            getWorld()->setField(getX(), getY(), nullptr);
+        }
     }
 }
 
+void OilBarrel::doSomething() {
+    int dist_x, dist_y;
+    dist_x = getX() - getWorld()->getIceman()->getX();
+    dist_y = getY() - getWorld()->getIceman()->getY();
+    if (!isVisible()) {
+        if ((dist_x * dist_x + dist_y * dist_y) <= 16) {
+            setVisible(true);
+        }
+    }
+    else {
+        if ((dist_x * dist_x + dist_y * dist_y) <= 9) {
+            setVisible(false);
+            unalive();
+            getWorld()->playSound(SOUND_FOUND_OIL);
+        }
+    }
+}

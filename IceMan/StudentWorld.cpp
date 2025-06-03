@@ -29,8 +29,8 @@ void StudentWorld::startWorld() {
     // initialize the iceman
     m_player = std::make_shared<Iceman>(this);
     dsList.emplace_back(m_player);
-    // field[30][60] = m_player;
     setBoulder();
+    setOil();
 }
 // TODO: replace with the correct getter functions
 void StudentWorld::setStats() {
@@ -77,7 +77,7 @@ void StudentWorld::setBoulder() {
         int x , y;
         // reposition if position is invalid
         do {
-            x = rand() % 61;
+            x = 10 - (i*2); // rand() % 61;
             y = rand() % 61;
         } while ((x<0 || x>60) || (y<20 || y>56) || (x > 26 && x < 37)
                  || checkObjectDist(x, y));
@@ -90,6 +90,25 @@ void StudentWorld::setBoulder() {
         auto newBoulder = make_shared<Boulder>(x, y, this);
         field[x][y] = newBoulder;
         dsList.emplace_back(newBoulder);
+        bList.emplace_back(newBoulder);
+    }
+}
+
+void StudentWorld::setOil() {
+    int level = getLevel();
+    int num = 15; // min(level/2 + 2, 9);
+    for (int i = 0; i < num; i++) {
+        int x , y;
+        // reposition if position is invalid
+        do {
+            x = rand() % 61;
+            y = rand() % 61;
+        } while ((x<0 || x>60) || (y<0 || y>56) || (x > 26 && x < 37)
+                 || checkObjectDist(x, y));
+
+        auto newOil = make_shared<OilBarrel>(x, y, this);
+        // field[x][y] = newOil;
+        dsList.emplace_back(newOil);
     }
 }
 // check distance between objects to ensure they're not too close

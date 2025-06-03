@@ -27,6 +27,7 @@ public:
         m_player = nullptr;
         field.clear();
         dsList.clear();
+        bList.clear();
     }
     // initialize the game/new level
     virtual int init()
@@ -63,6 +64,7 @@ public:
         m_player = nullptr;
         field.clear();
         dsList.clear();
+        bList.clear();
     }
     // getter function for elements in field
     void getField(int x, int y, std::shared_ptr<Actor>& pos) const {
@@ -97,7 +99,7 @@ public:
         return false;
     }
     
-    
+    std::vector<std::shared_ptr<Boulder>> getBoulders() {return bList;}
 private:
     // pointer of iceman/player
     std::shared_ptr<Iceman> m_player;
@@ -107,6 +109,8 @@ private:
     std::shared_ptr<Ice> ices[64][64];
     // vector that keep tracks of all actors that can doSomething
     std::vector<std::shared_ptr<Actor>> dsList;
+    // vector to keep track all boulders
+    std::vector<std::shared_ptr<Boulder>> bList;
     // auxilery function for init(), see StudentWorld.cpp
     void startWorld();
     // Display game stats (in progress)
@@ -115,5 +119,7 @@ private:
     void setBoulder();
     // check distance between objects to ensure they're not too close
     bool checkObjectDist(int x, int y);
+    // Add oil to the game
+    void setOil();
 };
 #endif // STUDENTWORLD_H_

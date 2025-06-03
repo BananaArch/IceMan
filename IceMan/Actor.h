@@ -31,7 +31,8 @@ public:
     Person(int imageId, int x, int y, Direction dir, double size, unsigned int depth, StudentWorld* world, int hp) : Actor(imageId, x, y, dir, size, depth, world), m_hp(hp) {}
     virtual ~Person() {}
     virtual void doSomething() = 0;
-    virtual void annoyed() = 0;
+    // get damaged
+    virtual void annoyed(int dmg) {m_hp -= dmg;}
     virtual int getHp() {return m_hp;}
 private:
     int m_hp;
@@ -55,8 +56,6 @@ public:
     void doSomething() override;
     // break ice mechanics
     void breakIce();
-    // get damaged
-    void annoyed() override {}
 private:
     // player state
     int m_water;
@@ -116,7 +115,7 @@ private:
 class Ice : public Object {
 public:
     // 0.25 for size (image is 4x4, but ice should be 1x1), 0 for depth
-    Ice(int x, int y, StudentWorld* world) : Object(IID_ICE, x, y, right, 0.25, 0, world) {
+    Ice(int x, int y, StudentWorld* world) : Object(IID_ICE, x, y, right, 0.25, 3, world) {
         setVisible(true); // display on screen by default
     }
     // abstract class destructor will handle it
