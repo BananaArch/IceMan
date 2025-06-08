@@ -2,6 +2,7 @@
 #include "Actor.h"
 #include <string>
 #include <vector>
+#include <queue>
 #include <cstdlib>
 
 using namespace std;
@@ -26,6 +27,17 @@ void StudentWorld::startWorld() {
         }
     }
 
+    for (int x = 0; x < 61; x++) {
+        for (int y = 0; y < 61; y++) {
+
+            returnMap[x][y] = -1;
+            playerMap[x][y] = -1;
+            
+        }
+    }
+    
+    // initialize tickCount
+    m_tickCount = 0;
 
 
     // initialize the iceman
@@ -137,4 +149,135 @@ bool StudentWorld::checkObjectDist(int x, int y) {
         }
     }
     return false;
+
+}
+
+void StudentWorld::generateReturnMap() {
+
+    const int destinationX = 60;
+    const int destinationY = 60;
+
+    for (int i = 0; i < 61; i++) {
+        for (int j = 0; j < 61; j++) {
+            if (containsBoulder(i, j) || containsIce(i, j)) { // inaccessible, because boulder or ice
+                returnMap[i][j] = 1000000;
+            }
+            else {
+                returnMap[i][j] = -1;
+            }
+        }
+    }
+
+    std::queue<std::pair<int, int>> q;
+    q.push({ destinationX, destinationY });
+    returnMap[destinationX][destinationY] = 0;
+
+    while (!q.empty()) {
+        auto curr = q.front();
+        q.pop();
+        int x = curr.first;
+        int y = curr.second;
+        int dist = returnMap[x][y];
+
+        // Check Up and Fill
+        if (y + 1 <= 60 && returnMap[x][y + 1] == -1) {
+            returnMap[x][y + 1] = dist + 1;
+            q.push({ x, y + 1 });
+        }
+        // Check Down and Fill
+        if (y - 1 >= 0 && returnMap[x][y - 1] == -1) {
+            returnMap[x][y - 1] = dist + 1;
+            q.push({ x, y - 1 });
+        }
+        // Check Left and Fill
+        if (x - 1 >= 0 && returnMap[x - 1][y] == -1) {
+            returnMap[x - 1][y] = dist + 1;
+            q.push({ x - 1, y });
+        }
+        // Check Right and Fill
+        if (x + 1 <= 60 && returnMap[x + 1][y] == -1) {
+            returnMap[x + 1][y] = dist + 1;
+            q.push({ x + 1, y });
+        }
+    }
+}
+
+void StudentWorld::generatePlayerMap() {
+    int destinationX = m_player->getX();
+    int destinationY = m_player->getY();
+
+    for (int i = 0; i < 61; i++) {
+        for (int j = 0; j < 61; j++) {
+            if (containsBoulder(i, j) || containsIce(i, j)) { // inaccessible, because boulder or ice
+                playerMap[i][j] = 1000000;
+            }
+            else {
+                playerMap[i][j] = -1;
+            }
+        }
+    }
+
+    std::queue<std::pair<int, int>> q;
+    q.push({ destinationX, destinationY });
+    playerMap[destinationX][destinationY] = 0;
+
+    while (!q.empty()) {
+        auto curr = q.front();
+        q.pop();
+        int x = curr.first;
+        int y = curr.second;
+        int dist = playerMap[x][y];
+
+        // Check Up and Fill
+        if (y + 1 <= 60 && playerMap[x][y + 1] == -1) {
+            playerMap[x][y + 1] = dist + 1;
+            q.push({ x, y + 1 });
+        }
+        // Check Down and Fill
+        if (y - 1 >= 0 && playerMap[x][y - 1] == -1) {
+            playerMap[x][y - 1] = dist + 1;
+            q.push({ x, y - 1 });
+        }
+        // Check Left and Fill
+        if (x - 1 >= 0 && playerMap[x - 1][y] == -1) {
+            playerMap[x - 1][y] = dist + 1;
+            q.push({ x - 1, y });
+        }
+        // Check Right and Fill
+        if (x + 1 <= 60 && playerMap[x + 1][y] == -1) {
+            playerMap[x + 1][y] = dist + 1;
+            q.push({ x + 1, y });
+        }
+    }
+}
+
+void StudentWorld::createProtester() {
+    // max ticks that must pass before new protester can be created
+    int T = (200 - getLevel() < 25) ? 25 : 200 - getLevel(); // max(25, 200 – current_level_number) 
+    // max protesters on field 
+    int P = (2 + getLevel() * 1.5 > 15) ? 15 : 2 + getLevel() * 1.5; // min(15, 2 + current_level_number * 1.5)
+    if (m_tickCount - m_lastProtesterCreated < T && pList.size() > 0 || pList.size() >= P) return;
+
+    // update last created tick
+    m_lastProtesterCreated = m_tickCount;
+
+    // probability of hardcore protester: min(90, getLevel() * 10 + 30)
+    int hardcoreProb = (getLevel() * 10 + 30 > 90) ? 90 : getLevel() * 10 + 30;
+
+    // random value from [1, 100] to determine protester type
+    int randVal = 1 + std::rand() % 100;
+
+    std::shared_ptr<Protester> protester;
+
+    if (randVal <= hardcoreProb) {
+        protester = std::make_shared<HardcoreProtester>(this);
+    }
+    else {
+        protester = std::make_shared<RegularProtester>(this);
+    }
+
+    // Add to protester list and do something list
+    pList.push_back(protester);
+    dsList.push_back(protester);
+
 }

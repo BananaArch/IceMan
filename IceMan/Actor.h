@@ -8,6 +8,8 @@
 
 #include<cstdlib>
 
+enum MoveDirection { none, moveUp, moveRight, moveLeft, moveDown };
+
 class StudentWorld;
 // Students:  Add code to this file, Actor.cpp, StudentWorld.h, and StudentWorld.cpp
 // Base class of all actors
@@ -31,14 +33,16 @@ private:
 // TODO: Boulder logic
 class Person : public Actor {
 public:
-    Person(int imageId, int x, int y, Direction dir, double size, unsigned int depth, StudentWorld* world, int hp) : Actor(imageId, x, y, dir, size, depth, world), m_hp(hp) {}
+    Person(int imageId, int x, int y, Direction dir, double size, unsigned int depth, StudentWorld* world, int hp) : Actor(imageId, x, y, dir, size, depth, world), m_hp(hp) {
+        setVisible(true);
+    }
     virtual ~Person() {}
     virtual void doSomething() = 0;
     // get damaged
     void decreaseHp(int dmg) { m_hp -= dmg; }
     void setHp(int hp) { m_hp = hp; }
     int getHp() { return m_hp; }
-    virtual void move(Direction dir);
+    virtual void move(MoveDirection dir);
 private:
     int m_hp;
 };
@@ -49,8 +53,7 @@ private:
 class Iceman : public Person {
 public:
     // Player spawn at (30, 60) by default
-    Iceman(StudentWorld* world) : Person(IID_PLAYER, 30, 60, right, 1, 0, world, 10) { // last parameter describes default health (10)
-        setVisible(true); // display on screen by default
+    Iceman(StudentWorld* world) : Person(IID_PLAYER, 30, 60, right, 1, 0, world, 10) { // last parameter describes default health (10) 
         m_water = 5; // default water
         m_gold = 0; // default gold nuggets
         m_sonar = 1; // default sonar
@@ -75,31 +78,22 @@ public:
     Protester(int imageId, int x, int y, StudentWorld* world, int hp);
     virtual ~Protester() {}
     virtual void doSomething() = 0;
-    int isARestTick() {
-        if (m_internalClock == m_ticksToWaitBetweenMoves) {
-            m_internalClock = 0;
-            return false;
-        }
-        else {
-            return true;
-        }
-    }
-    void incrementInternalClock() { m_internalClock++; }
+    int isARestTick();
     bool getIsLeaving() { return m_isLeavingField; }
     void setIsLeaving(bool leavingField) { m_isLeavingField = leavingField; }
-    void pathfindTo(int x, int y);
+    void moveToLeaveLocation();
+    void moveToPlayer();
 private:
     int m_numSquaresToMoveInCurrentDirections;
     int m_ticksToWaitBetweenMoves;
     bool m_isLeavingField;
-    int m_internalClock;
 };
 
 // --- RegularProtester Class Implementation ---
 // Represents the regular Protesters
 class RegularProtester : public Protester {
 public:
-    RegularProtester(int x, int y, StudentWorld* world) : Protester(IID_PROTESTER, x, y, world, 5) {}
+    RegularProtester(StudentWorld* world) : Protester(IID_PROTESTER, 60, 60, world, 5) {}
     ~RegularProtester() {}
     void doSomething() override;
 private:
@@ -110,7 +104,7 @@ private:
 // Represents the harcore Protesters
 class HardcoreProtester : public Protester {
 public:
-    HardcoreProtester(int x, int y, StudentWorld* world) : Protester(IID_HARD_CORE_PROTESTER, x, y, world, 20) {}
+    HardcoreProtester(StudentWorld* world) : Protester(IID_HARD_CORE_PROTESTER, 60, 60, world, 20) {}
     ~HardcoreProtester() {}
     void doSomething() override;
 private:

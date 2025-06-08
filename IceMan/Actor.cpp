@@ -1,29 +1,28 @@
 #include "Actor.h"
 #include "StudentWorld.h"
 #include <memory>
+#include <queue>
 using namespace std;
 
 // TODO
-void Person::move(Direction dir) {
+void Person::move(MoveDirection dir) {
     switch (dir) {
-    case none:
-        break;
-    case up:
+    case moveUp:
         // check that it's in bounds and does not contain boulder
         if (getY() < 60 && !getWorld()->containsBoulder(getX(), getY() + 1))
             moveTo(getX(), getY() + 1);
         break;
-    case down:
+    case moveDown:
         // check that it's in bounds and does not contain boulder
         if (getY() > 0 && !getWorld()->containsBoulder(getX(), getY() - 1))
             moveTo(getX(), getY() - 1);
         break;
-    case right:
+    case moveRight:
         // check that it's in bounds and does not contain boulder
         if (getX() < 60 && !getWorld()->containsBoulder(getX() + 1, getY()))
             moveTo(getX() + 1, getY());
         break;
-    case left:
+    case moveLeft:
         // check that it's in bounds and does not contain boulder
         if (getX() > 0 && !getWorld()->containsBoulder(getX() - 1, getY()))
             moveTo(getX() - 1, getY());
@@ -63,7 +62,7 @@ void Iceman::doSomething() {
             break;
         case KEY_PRESS_LEFT:
             if (getDirection() == left) {
-                move(left);
+                move(moveLeft);
             }
             else {
                 setDirection(left);
@@ -72,7 +71,7 @@ void Iceman::doSomething() {
             // move right
         case KEY_PRESS_RIGHT:
             if (getDirection() == right) {
-                move(right);
+                move(moveRight);
             }
             else {
                 setDirection(right);
@@ -81,7 +80,7 @@ void Iceman::doSomething() {
             // move upwards
         case KEY_PRESS_UP:
             if (getDirection() == up) {
-                move(up);
+                move(moveUp);
             }
             else {
                 setDirection(up);
@@ -90,7 +89,7 @@ void Iceman::doSomething() {
             // move downwards
         case KEY_PRESS_DOWN:
             if (getDirection() == down) {
-                move(down);
+                move(moveDown);
             }
             else {
                 setDirection(down);
@@ -118,14 +117,22 @@ void Iceman::breakIce() {
 }
 
 // constructor for protester
-Protester::Protester(int imageId, int x, int y, StudentWorld* world, int hp) : Person(imageId, x, y, left, 1.0, 0, world, hp), m_isLeavingField(false), m_internalClock(0) {
+Protester::Protester(int imageId, int x, int y, StudentWorld* world, int hp) : Person(imageId, x, y, left, 1.0, 0, world, hp), m_isLeavingField(false) {
     m_numSquaresToMoveInCurrentDirections = 8 + (std::rand() % (60 - 8 + 1));
     m_ticksToWaitBetweenMoves = (0 > (3 - getWorld()->getLevel() / 4)) ? 0 : (3 - getWorld()->getLevel() / 4); // max using ternary operator
     setVisible(true);
 }
 
-void Protester::pathfindTo(int x, int y) {
+int Protester::isARestTick() {
+    return getWorld()->getTickCount() % (m_ticksToWaitBetweenMoves + 1) == 0;
+}
 
+void Protester::moveToLeaveLocation() {
+    move(getWorld()->bestDirectionToReturn(getX(), getY()));
+}
+
+void Protester::moveToPlayer() {
+    move(getWorld()->bestDirectionToPlayer(getX(), getY()));
 }
 
 void RegularProtester::doSomething() {
@@ -133,25 +140,30 @@ void RegularProtester::doSomething() {
     
     // checks if it is a rest tick
     if (isARestTick()) {
-        incrementInternalClock();
         return;
     }
 
     // check if hp is zero or less, if so then it leaves field
-    if (getHp() <= 0) {
+    if (!getIsLeaving() && getHp() <= 0) {
         setIsLeaving(true);
     }
 
     // if it's in the leaving field state
     if (getIsLeaving()) {
         // if it's at the exit point
-        if (getX() == 60 && getY() == 60) unalive();
-
+        if (getX() == 60 && getY() == 60) {
+            unalive();
+            return;
+        }
+        moveToLeaveLocation();
+        return;
     }
 
-
+    moveToPlayer();
 
 }
+
+void HardcoreProtester::doSomething() {}
 
 void Boulder::doSomething() {
     if (!stable) {
@@ -178,7 +190,7 @@ void Boulder::doSomething() {
             }
             // check if the bolder hits player
             if ((getWorld()->getIceman()->getX() <= x && getWorld()->getIceman()->getX() + 3 >= x) && getWorld()->getIceman()->getY() == this->getY()-4) {
-                getWorld()->getIceman()->decreaseHp(10);
+                getWorld()->getIceman()->setHp(0);
             }
             // Keep falling
             if (!crash) {

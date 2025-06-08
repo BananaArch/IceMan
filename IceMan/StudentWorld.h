@@ -7,6 +7,7 @@
 #include <memory>
 #include <string>
 #include <vector>
+#include <future>
 
 /*
 Can we implement these methods inside StudentWorld.cpp instead of StudentWorld.h?
@@ -39,9 +40,12 @@ public:
         startWorld();
         return GWSTATUS_CONTINUE_GAME;
     }
+
     // control each actor every tick
     virtual int move()
     {
+        ++m_tickCount;
+
         // if player died
         if (m_player && m_player->getHp() <= 0) {
             decLives();
@@ -54,6 +58,27 @@ public:
             if ((*it)->isAlive()) ++it;
             else it = bList.erase(it);
         }
+
+        // Launch new pathfinding tasks every 20 ticks
+        if (m_tickCount % 20 == 0) {
+
+            playerMapFuture = std::async(std::launch::async, [this]() {
+                generatePlayerMap();
+                });
+
+            returnMapFuture = std::async(std::launch::async, [this]() {
+                generateReturnMap();
+                });
+        }
+
+        // clean up any protesters
+        for (auto it = pList.begin(); it != pList.end(); ) {
+            if ((*it)->isAlive()) ++it;
+            else it = pList.erase(it);
+        }
+
+        // create protesters, if possible
+        createProtester();
 
         // doSomething cycle
         for (auto it = dsList.begin(); it != dsList.end(); ) {
@@ -82,6 +107,7 @@ public:
         m_player = nullptr;
         field.clear();
         dsList.clear();
+        pList.clear();
         bList.clear();
     }
     // getter function for elements in field
@@ -119,38 +145,130 @@ public:
     
     std::vector<std::shared_ptr<Boulder>> getBoulders() {return bList;}
     
-    // see if prospective move is legal or not based on whether or not there is a boulder blocking it
+    // see if prospective move by a 4x4 person is legal or not based on whether or not there is a boulder blocking it
     bool containsBoulder(int x, int y) {
         for (auto boulder : bList) {
             // Check if the person's prospective coordinates (x, y) falls within the 4x4 area of any boulder
             if ((x + 4) > boulder->getX() && x < boulder->getX() + 4 &&
                 (y + 4) > boulder->getY() && y < boulder->getY() + 4) {
-                return true; 
+                return true;
             }
         }
         return false; // No boulder found occupying the spot (x, y)
     }
 
+    // see if prospective move by a 4x4 protester is legal or not based on whether or not there is ice blocking it
+    bool containsIce(int x, int y) {
+        for (int i = 0; i <= 64; i++) {
+            for (int j = 0; j <= 64; j++) {
+                if (ices[i][j] != nullptr) {
+                    if (x + 4 > i && x < i + 1 &&
+                        y + 4 > j && y < j + 1) return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    // returns the best direction to move when trying
+    MoveDirection bestDirectionToReturn(int x, int y) {
+        int bestVal = returnMap[x][y];
+        MoveDirection bestDir = none;
+
+        // Check left
+        if (x > 0 && returnMap[x - 1][y] < bestVal) {
+            bestVal = returnMap[x - 1][y];
+            bestDir = moveLeft;
+        }
+        // Check right
+        if (x < 60 && returnMap[x + 1][y] < bestVal) {
+            bestVal = returnMap[x + 1][y];
+            bestDir = moveRight;
+        }
+        // Check up
+        if (y < 60 && returnMap[x][y + 1] < bestVal) {
+            bestVal = returnMap[x][y + 1];
+            bestDir = moveUp;
+        }
+        // Check down
+        if (y > 0 && returnMap[x][y - 1] < bestVal) {
+            bestVal = returnMap[x][y - 1];
+            bestDir = moveDown;
+        }
+
+        return bestDir;
+    }
+
+    MoveDirection bestDirectionToPlayer(int x, int y) {
+        int bestVal = playerMap[x][y];
+        MoveDirection bestDir = none;
+
+        // Check left
+        if (x > 0 && playerMap[x - 1][y] < bestVal) {
+            bestVal = playerMap[x - 1][y];
+            bestDir = moveLeft;
+        }
+        // Check right
+        if (x < 60 && playerMap[x + 1][y] < bestVal) {
+            bestVal = playerMap[x + 1][y];
+            bestDir = moveRight;
+        }
+        // Check up
+        if (y < 60 && playerMap[x][y + 1] < bestVal) {
+            bestVal = playerMap[x][y + 1];
+            bestDir = moveUp;
+        }
+        // Check down
+        if (y > 0 && playerMap[x][y - 1] < bestVal) {
+            bestVal = playerMap[x][y - 1];
+            bestDir = moveDown;
+        }
+
+        return bestDir;
+    }
+    
+    int getTickCount() { return m_tickCount; }
 private:
+
+    unsigned long m_tickCount = 0;
+    unsigned long m_lastProtesterCreated = 0;
+
+    // used for pathfinding multithreading
+    std::future<void> playerMapFuture;
+    std::future<void> returnMapFuture;
+
     // pointer of iceman/player
     std::shared_ptr<Iceman> m_player;
     // main 2d array that keep tracks of all actors except iceman and ice
     std::vector<std::vector<std::shared_ptr<Actor>>> field;
     // 2d array that initialize all the ice objects
     std::shared_ptr<Ice> ices[64][64];
+    // 2d array for pathfinding to protester target
+    int returnMap[61][61];
+    // 2d array for pathfinding to player target
+    int playerMap[61][61];
     // vector that keep tracks of all actors that can doSomething
     std::vector<std::shared_ptr<Actor>> dsList;
     // vector to keep track all boulders
     std::vector<std::shared_ptr<Boulder>> bList;
+    // vector to keep track all protesters
+    std::vector<std::shared_ptr<Protester>> pList;
     // auxilery function for init(), see StudentWorld.cpp
     void startWorld();
     // Display game stats (in progress)
     void setStats();
     // Add boulders to the game
     void setBoulder();
+    // Creates protesters
+    void createProtester();
     // check distance between objects to ensure they're not too close
     bool checkObjectDist(int x, int y);
     // Add oil to the game
     void setOil();
+    // generate return map for pathfinding
+    void generateReturnMap();
+    // generate player map for pathfinding
+    void generatePlayerMap();
+
 };
 #endif // STUDENTWORLD_H_
