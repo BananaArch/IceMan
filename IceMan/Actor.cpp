@@ -124,7 +124,7 @@ Protester::Protester(int imageId, int x, int y, StudentWorld* world, int hp) : P
 }
 
 int Protester::isARestTick() {
-    return getWorld()->getTickCount() % (m_ticksToWaitBetweenMoves + 1) == 0;
+    return getWorld()->getTickCount() % m_ticksToWaitBetweenMoves != 0;
 }
 
 void Protester::moveToLeaveLocation() {
@@ -140,8 +140,11 @@ void RegularProtester::doSomething() {
     
     // checks if it is a rest tick
     if (isARestTick()) {
+        std::cout << "rest tick" << std::endl;
         return;
     }
+
+    std::cout << "not a rest tick" << std::endl;
 
     // check if hp is zero or less, if so then it leaves field
     if (!getIsLeaving() && getHp() <= 0) {
