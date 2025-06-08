@@ -66,11 +66,15 @@ public:
     void breakIce();
     // player taking damage
     void decreaseHp(int dmg) override;
+    // getter functions for player state
+    size_t getWater() const {return m_water;}
+    size_t getGold() const {return m_gold;}
+    size_t getSonar() const {return m_sonar;}
 private:
     // player state
-    int m_water;
-    int m_gold;
-    int m_sonar;
+    size_t m_water;
+    size_t m_gold;
+    size_t m_sonar;
 };
 
 // --- Protester Class Implementation ---

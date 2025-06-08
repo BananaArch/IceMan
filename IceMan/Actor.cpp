@@ -205,13 +205,15 @@ void Boulder::doSomething() {
             std::vector<std::shared_ptr<Protester>> pList;
             getWorld()->getpList(pList);
             for (auto it = pList.begin(); it != pList.end(); ++it) {
+                // check if it's null just in case
                 if (!(*it)) continue;
-
+                
                 int px = (*it)->getX();
                 int py = (*it)->getY();
-
+                // if a protestor is hit, damage it and increase score
                 if (px <= x && px + 3 >= x && py == this->getY() - 4) {
                     (*it)->decreaseHp(20);
+                    getWorld()->increaseScore(500);
                 }
             }
 
@@ -254,8 +256,9 @@ void OilBarrel::doSomething() {
     else {
         if ((dist_x * dist_x + dist_y * dist_y) <= 9) {
             setVisible(false);
-            unalive();
             getWorld()->playSound(SOUND_FOUND_OIL);
+            getWorld()->increaseScore(1000);
+            unalive();
         }
     }
 }

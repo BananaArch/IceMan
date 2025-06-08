@@ -51,10 +51,10 @@ void StudentWorld::setStats() {
     int level = getLevel();
     int lives = getLives();
     int health = m_player->getHp() * 10;
-    int squirts(0);
-    int gold(0);
-    int barrelsLeft(0); // Oil left on the field
-    int sonar(0);
+    size_t squirts = m_player->getWater();
+    size_t gold = m_player->getGold();
+    int barrelsLeft = oList.size(); // Oil left on the field
+    size_t sonar = m_player->getSonar();
     string score = to_string(getScore());
     string stats;
     // stat for game level
@@ -110,19 +110,20 @@ void StudentWorld::setBoulder() {
 
 void StudentWorld::setOil() {
     int level = getLevel();
-    int num = 15; // min(level/2 + 2, 9);
+    int num = min(2 + level, 21);
     for (int i = 0; i < num; i++) {
         int x , y;
         // reposition if position is invalid
         do {
             x = std::rand() % 61;
             y = std::rand() % 61;
-        } while ((x<0 || x>60) || (y<0 || y>56) || (x > 26 && x < 37)
+        } while ((x<=0 || x>=60) || (y<=0 || y>=56) || (x > 26 && x < 37)
                  || checkObjectDist(x, y));
 
         auto newOil = make_shared<OilBarrel>(x, y, this);
         setField(x, y, newOil);
         dsList.emplace_back(newOil);
+        oList.emplace_back(newOil);
     }
 }
 // check distance between objects to ensure they're not too close

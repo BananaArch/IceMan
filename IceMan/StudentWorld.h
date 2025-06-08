@@ -52,6 +52,10 @@ public:
             decLives();
             return GWSTATUS_PLAYER_DIED;
         }
+        // if all oil barrels are collected, advance to next level
+        if (oList.size() == 0) {
+            return GWSTATUS_FINISHED_LEVEL;
+        }
         setStats();
 
         // clean up any dead boulders
@@ -60,6 +64,18 @@ public:
             else it = bList.erase(it);
         }
 
+        // clean up any dead oil barrels
+        for (auto it = oList.begin(); it != oList.end(); ) {
+            if ((*it)->isAlive()) ++it;
+            else it = oList.erase(it);
+        }
+        
+        // clean up any dead actors in dsList
+        for (auto it = dsList.begin(); it != dsList.end(); ) {
+            if ((*it)->isAlive()) ++it;
+            else it = dsList.erase(it);
+        }
+        
         // Launch new pathfinding tasks every 20 ticks
         if (m_tickCount % 20 == 0) {
 
@@ -110,6 +126,7 @@ public:
         dsList.clear();
         pList.clear();
         bList.clear();
+        oList.clear();
     }
     // getter function for elements in field
     void getField(int x, int y, std::shared_ptr<Actor>& pos) const {
@@ -263,6 +280,8 @@ private:
     std::vector<std::shared_ptr<Boulder>> bList;
     // vector to keep track all protesters
     std::vector<std::shared_ptr<Protester>> pList;
+    // vector to keep track all oil barrels
+    std::vector<std::shared_ptr<OilBarrel>> oList;
     // auxilery function for init(), see StudentWorld.cpp
     void startWorld();
     // Display game stats (in progress)
