@@ -39,7 +39,7 @@ public:
     virtual ~Person() {}
     virtual void doSomething() = 0;
     // get damaged
-    void decreaseHp(int dmg) { m_hp -= dmg; }
+    virtual void decreaseHp(int dmg) { m_hp -= dmg; }
     void setHp(int hp) { m_hp = hp; }
     int getHp() { return m_hp; }
     virtual void move(MoveDirection dir);
@@ -53,7 +53,7 @@ private:
 class Iceman : public Person {
 public:
     // Player spawn at (30, 60) by default
-    Iceman(StudentWorld* world) : Person(IID_PLAYER, 30, 60, right, 1, 0, world, 10) { // last parameter describes default health (10) 
+    Iceman(StudentWorld* world) : Person(IID_PLAYER, 30, 60, right, 1, 0, world, 10) { // last parameter describes default health (10)
         m_water = 5; // default water
         m_gold = 0; // default gold nuggets
         m_sonar = 1; // default sonar
@@ -64,6 +64,8 @@ public:
     void doSomething() override;
     // break ice mechanics
     void breakIce();
+    // player taking damage
+    void decreaseHp(int dmg) override;
 private:
     // player state
     int m_water;

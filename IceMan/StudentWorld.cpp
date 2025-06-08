@@ -262,8 +262,8 @@ void StudentWorld::generatePlayerMap() {
 
 void StudentWorld::createProtester() {
     // max ticks that must pass before new protester can be created
-    int T = (200 - getLevel() < 25) ? 25 : 200 - getLevel(); // max(25, 200 – current_level_number) 
-    // max protesters on field 
+    int T = (200 - getLevel() < 25) ? 25 : 200 - getLevel(); // max(25, 200 ï¿½ current_level_number)
+    // max protesters on field
     int P = (2 + getLevel() * 1.5 > 15) ? 15 : 2 + getLevel() * 1.5; // min(15, 2 + current_level_number * 1.5)
     if (m_tickCount - m_lastProtesterCreated < T && pList.size() > 0 || pList.size() >= P) return;
 

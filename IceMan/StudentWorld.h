@@ -88,7 +88,7 @@ public:
                 ++it; // go to next actor if actor is alive
             }
             else { // if actor is not alive
-                it = dsList.erase(it); // erase returns the next valid 
+                it = dsList.erase(it); // erase returns the next valid
             } // Notice that we only increment the iterator when we don't erase
         }
 
@@ -119,7 +119,7 @@ public:
         }
         pos = nullptr;
     }
-    // change element in the 
+    // change element in the
     void setField(int x, int y, std::shared_ptr<Actor> pos) {
         if (x>=0 && y>=0 && x<64 && y<64) {
             field[x][y] = pos;
@@ -171,6 +171,11 @@ public:
         return false;
     }
 
+    // getter function to allow actors accessing pList
+    void getpList(std::vector<std::shared_ptr<Protester>> &copyList) const{
+        copyList = pList;
+    }
+    
     // returns the best direction to move when trying
     MoveDirection bestDirectionToReturn(int x, int y) {
         int bestVal = returnMap[x][y];

@@ -116,6 +116,11 @@ void Iceman::breakIce() {
     }
 }
 
+void Iceman::decreaseHp(int dmg)  {
+    Person::decreaseHp(dmg);
+    getWorld()->playSound(SOUND_PLAYER_ANNOYED);
+}
+
 // constructor for protester
 Protester::Protester(int imageId, int x, int y, StudentWorld* world, int hp) : Person(imageId, x, y, left, 1.0, 0, world, hp), m_isLeavingField(false) {
     m_numSquaresToMoveInCurrentDirections = 8 + (std::rand() % (60 - 8 + 1));
@@ -191,10 +196,25 @@ void Boulder::doSomething() {
                         crash = true;
                 }
             }
-            // check if the bolder hits player
+            // check if the boulder hits player
             if ((getWorld()->getIceman()->getX() <= x && getWorld()->getIceman()->getX() + 3 >= x) && getWorld()->getIceman()->getY() == this->getY()-4) {
                 getWorld()->getIceman()->setHp(0);
             }
+            
+            // check if the boulder hits protestors
+            std::vector<std::shared_ptr<Protester>> pList;
+            getWorld()->getpList(pList);
+            for (auto it = pList.begin(); it != pList.end(); ++it) {
+                if (!(*it)) continue;
+
+                int px = (*it)->getX();
+                int py = (*it)->getY();
+
+                if (px <= x && px + 3 >= x && py == this->getY() - 4) {
+                    (*it)->decreaseHp(20);
+                }
+            }
+
             // Keep falling
             if (!crash) {
                 moveTo(x, y-1);
