@@ -48,6 +48,7 @@ public:
 
         // if player died
         if (m_player && m_player->getHp() <= 0) {
+            playSound(SOUND_PLAYER_GIVE_UP);
             decLives();
             return GWSTATUS_PLAYER_DIED;
         }
@@ -245,8 +246,12 @@ private:
     std::shared_ptr<Ice> ices[64][64];
     // 2d array for pathfinding to protester target
     int returnMap[61][61];
+    // 2d helper array for pathfinding to protester target
+    int returnTempMap[61][61];
     // 2d array for pathfinding to player target
     int playerMap[61][61];
+    // 2d helper array for pathfinding to player target
+    int playerTempMap[61][61];
     // vector that keep tracks of all actors that can doSomething
     std::vector<std::shared_ptr<Actor>> dsList;
     // vector to keep track all boulders

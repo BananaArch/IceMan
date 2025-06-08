@@ -11,7 +11,7 @@ GameWorld* createStudentWorld(string assetDir)
 {
     return new StudentWorld(assetDir);
 }
-// Hello World
+
 void StudentWorld::startWorld() {
     // intialize 2d array that keep track of all actors
     field.resize(64, std::vector<std::shared_ptr<Actor>>(64, nullptr));
@@ -160,46 +160,51 @@ void StudentWorld::generateReturnMap() {
     for (int i = 0; i < 61; i++) {
         for (int j = 0; j < 61; j++) {
             if (containsBoulder(i, j) || containsIce(i, j)) { // inaccessible, because boulder or ice
-                returnMap[i][j] = 1000000;
+                returnTempMap[i][j] = 1000000;
             }
             else {
-                returnMap[i][j] = -1;
+                returnTempMap[i][j] = -1;
             }
         }
     }
 
     std::queue<std::pair<int, int>> q;
     q.push({ destinationX, destinationY });
-    returnMap[destinationX][destinationY] = 0;
+    returnTempMap[destinationX][destinationY] = 0;
 
     while (!q.empty()) {
         auto curr = q.front();
         q.pop();
         int x = curr.first;
         int y = curr.second;
-        int dist = returnMap[x][y];
+        int dist = returnTempMap[x][y];
 
         // Check Up and Fill
-        if (y + 1 <= 60 && returnMap[x][y + 1] == -1) {
-            returnMap[x][y + 1] = dist + 1;
+        if (y + 1 <= 60 && returnTempMap[x][y + 1] == -1) {
+            returnTempMap[x][y + 1] = dist + 1;
             q.push({ x, y + 1 });
         }
         // Check Down and Fill
-        if (y - 1 >= 0 && returnMap[x][y - 1] == -1) {
-            returnMap[x][y - 1] = dist + 1;
+        if (y - 1 >= 0 && returnTempMap[x][y - 1] == -1) {
+            returnTempMap[x][y - 1] = dist + 1;
             q.push({ x, y - 1 });
         }
         // Check Left and Fill
-        if (x - 1 >= 0 && returnMap[x - 1][y] == -1) {
-            returnMap[x - 1][y] = dist + 1;
+        if (x - 1 >= 0 && returnTempMap[x - 1][y] == -1) {
+            returnTempMap[x - 1][y] = dist + 1;
             q.push({ x - 1, y });
         }
         // Check Right and Fill
-        if (x + 1 <= 60 && returnMap[x + 1][y] == -1) {
-            returnMap[x + 1][y] = dist + 1;
+        if (x + 1 <= 60 && returnTempMap[x + 1][y] == -1) {
+            returnTempMap[x + 1][y] = dist + 1;
             q.push({ x + 1, y });
         }
     }
+
+    // move everything from temp to official
+    for (int i = 0; i < 61; ++i)
+        for (int j = 0; j < 61; ++j)
+            returnMap[i][j] = returnTempMap[i][j];
 }
 
 void StudentWorld::generatePlayerMap() {
@@ -209,46 +214,50 @@ void StudentWorld::generatePlayerMap() {
     for (int i = 0; i < 61; i++) {
         for (int j = 0; j < 61; j++) {
             if (containsBoulder(i, j) || containsIce(i, j)) { // inaccessible, because boulder or ice
-                playerMap[i][j] = 1000000;
+                playerTempMap[i][j] = 1000000;
             }
             else {
-                playerMap[i][j] = -1;
+                playerTempMap[i][j] = -1;
             }
         }
     }
 
     std::queue<std::pair<int, int>> q;
     q.push({ destinationX, destinationY });
-    playerMap[destinationX][destinationY] = 0;
+    playerTempMap[destinationX][destinationY] = 0;
 
     while (!q.empty()) {
         auto curr = q.front();
         q.pop();
         int x = curr.first;
         int y = curr.second;
-        int dist = playerMap[x][y];
+        int dist = playerTempMap[x][y];
 
         // Check Up and Fill
-        if (y + 1 <= 60 && playerMap[x][y + 1] == -1) {
-            playerMap[x][y + 1] = dist + 1;
+        if (y + 1 <= 60 && playerTempMap[x][y + 1] == -1) {
+            playerTempMap[x][y + 1] = dist + 1;
             q.push({ x, y + 1 });
         }
         // Check Down and Fill
-        if (y - 1 >= 0 && playerMap[x][y - 1] == -1) {
-            playerMap[x][y - 1] = dist + 1;
+        if (y - 1 >= 0 && playerTempMap[x][y - 1] == -1) {
+            playerTempMap[x][y - 1] = dist + 1;
             q.push({ x, y - 1 });
         }
         // Check Left and Fill
-        if (x - 1 >= 0 && playerMap[x - 1][y] == -1) {
-            playerMap[x - 1][y] = dist + 1;
+        if (x - 1 >= 0 && playerTempMap[x - 1][y] == -1) {
+            playerTempMap[x - 1][y] = dist + 1;
             q.push({ x - 1, y });
         }
         // Check Right and Fill
-        if (x + 1 <= 60 && playerMap[x + 1][y] == -1) {
-            playerMap[x + 1][y] = dist + 1;
+        if (x + 1 <= 60 && playerTempMap[x + 1][y] == -1) {
+            playerTempMap[x + 1][y] = dist + 1;
             q.push({ x + 1, y });
         }
     }
+    // move everything from temp to official
+    for (int i = 0; i < 61; ++i)
+        for (int j = 0; j < 61; ++j)
+            playerMap[i][j] = playerTempMap[i][j];
 }
 
 void StudentWorld::createProtester() {
