@@ -7,7 +7,11 @@
 #include <memory>
 #include <string>
 #include <vector>
-// Students:  Add code to this file, StudentWorld.cpp, Actor.h, and Actor.cpp
+
+/*
+Can we implement these methods inside StudentWorld.cpp instead of StudentWorld.h?
+*/
+
 class StudentWorld : public GameWorld
 {
 public:
@@ -74,7 +78,7 @@ public:
         }
         pos = nullptr;
     }
-    // change element in the field
+    // change element in the 
     void setField(int x, int y, std::shared_ptr<Actor> pos) {
         if (x>=0 && y>=0 && x<64 && y<64) {
             field[x][y] = pos;

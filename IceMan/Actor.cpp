@@ -4,6 +4,7 @@
 using namespace std;
 // Iceman move and dig mechanics
 void Iceman::doSomething() {
+
     int val;
     // reading user input
     if (!getWorld()->getKey(val)) {
@@ -12,7 +13,19 @@ void Iceman::doSomething() {
     // player moving mechanics
     std::shared_ptr<Actor> ptr;
     switch (val) {
+            // unalive themselves
+        case KEY_PRESS_ESCAPE:
+            decreaseHp(10);
+            break;
+            // TODO: implement water squirt logic
+        case KEY_PRESS_SPACE: // page 28 part b
+            break;
             // move left
+        case 'z': // TODO: implement sonar logic
+        case 'Z':
+            break;
+        case KEY_PRESS_TAB: // TODO: Implement gold logic
+            break;
         case KEY_PRESS_LEFT:
             // Check the position of iceman that it is in bound
             getWorld()->getField(getX()-1, getY(), ptr);
@@ -96,7 +109,7 @@ void Boulder::doSomething() {
             }
             // check if the bolder hits player
             if ((getWorld()->getIceman()->getX() <= x && getWorld()->getIceman()->getX() + 3 >= x) && getWorld()->getIceman()->getY() == this->getY()-4) {
-                getWorld()->getIceman()->annoyed(10);
+                getWorld()->getIceman()->decreaseHp(10);
             }
             // Keep falling
             if (!crash) {

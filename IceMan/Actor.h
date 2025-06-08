@@ -10,15 +10,15 @@ class StudentWorld;
 // Base class of all actors
 class Actor : public GraphObject {
 public:
-    Actor(int imageID, int x, int y, Direction dir, double size, unsigned int depth, StudentWorld* world) : GraphObject(imageID, x, y, dir, size, depth), m_world(world) {}
+    Actor(int imageID, int x, int y, Direction dir, double size, unsigned int depth, StudentWorld* world) : GraphObject(imageID, x, y, dir, size, depth), m_alive(true), m_world(world) {}
     virtual ~Actor() {}
     virtual void doSomething() = 0; // pure virtual, do something depends on actor
-    StudentWorld* getWorld() const {return m_world;} // getter function for m_world
-    bool isAlive() {return m_alive;}
-    void unalive() {m_alive = false;}
+    StudentWorld* getWorld() const { return m_world; } // getter function for m_world
+    bool isAlive() { return m_alive; }
+    void unalive() { m_alive = false; }
 private:
     StudentWorld* m_world; // pointer to the world
-    bool m_alive = true;
+    bool m_alive;
 };
 
 
@@ -32,8 +32,9 @@ public:
     virtual ~Person() {}
     virtual void doSomething() = 0;
     // get damaged
-    virtual void annoyed(int dmg) {m_hp -= dmg;}
-    virtual int getHp() {return m_hp;}
+    virtual void decreaseHp(int dmg) { m_hp -= dmg; }
+    virtual void setHp(int hp) { m_hp = hp; }
+    virtual int getHp() { return m_hp; }
 private:
     int m_hp;
 };
@@ -44,7 +45,7 @@ private:
 class Iceman : public Person {
 public:
     // Player spawn at (30, 60) by default
-    Iceman(StudentWorld* world) : Person(IID_PLAYER, 30, 60, right, 1, 0, world, 10) { // last parameter describes default health (10
+    Iceman(StudentWorld* world) : Person(IID_PLAYER, 30, 60, right, 1, 0, world, 10) { // last parameter describes default health (10)
         setVisible(true); // display on screen by default
         m_water = 5; // default water
         m_gold = 0; // default gold nuggets
@@ -82,7 +83,7 @@ public:
     ~RegularProtestor() {}
     void doSomething() override;
 private:
-    
+
 };
 
 // --- HardcoreProtestor Class Implementation ---
@@ -141,12 +142,12 @@ private:
     int fallTimer = 0;
 };
 
-// --- Spurt Class Implementation ---
-// Represents Water Spurt projectile coming from water gun
-class Spurt : public Object {
+// --- Squirt Class Implementation ---
+// Represents Water Squirt projectile coming from water gun
+class Squirt : public Object {
 public:
-    Spurt(int x, int y, Direction dir, StudentWorld* world) : Object(IID_WATER_SPURT, x, y, dir, 1, 1, world) {}
-    ~Spurt() {};
+    Squirt(int x, int y, Direction dir, StudentWorld* world) : Object(IID_WATER_SPURT, x, y, dir, 1, 1, world) {}
+    ~Squirt() {};
     void doSomething() override;
 
 private:
@@ -177,7 +178,7 @@ public:
     void doSomething() override;
 
 private:
-    
+
 };
 
 // --- Oil Class Implementation ---

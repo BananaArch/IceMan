@@ -26,6 +26,8 @@ void StudentWorld::startWorld() {
         }
     }
 
+
+
     // initialize the iceman
     m_player = std::make_shared<Iceman>(this);
     dsList.emplace_back(m_player);
@@ -88,7 +90,7 @@ void StudentWorld::setBoulder() {
             }
         }
         auto newBoulder = make_shared<Boulder>(x, y, this);
-        field[x][y] = newBoulder;
+        setField(x, y, newBoulder);
         dsList.emplace_back(newBoulder);
         bList.emplace_back(newBoulder);
     }
@@ -107,7 +109,7 @@ void StudentWorld::setOil() {
                  || checkObjectDist(x, y));
 
         auto newOil = make_shared<OilBarrel>(x, y, this);
-        // field[x][y] = newOil;
+        setField(x, y, newOil);
         dsList.emplace_back(newOil);
     }
 }
