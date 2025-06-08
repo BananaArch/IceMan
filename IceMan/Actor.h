@@ -5,6 +5,9 @@
 #include "GraphObject.h"
 #include "GameConstants.h"
 #include "SpriteManager.h"
+
+#include<cstdlib>
+
 class StudentWorld;
 // Students:  Add code to this file, Actor.cpp, StudentWorld.h, and StudentWorld.cpp
 // Base class of all actors
@@ -23,7 +26,7 @@ private:
 
 
 // --- Person Base Class Implementation ---
-// Represents the people in the game -- iceman and the protestors
+// Represents the people in the game -- iceman and the Protesters
 
 // TODO: Boulder logic
 class Person : public Actor {
@@ -32,9 +35,10 @@ public:
     virtual ~Person() {}
     virtual void doSomething() = 0;
     // get damaged
-    virtual void decreaseHp(int dmg) { m_hp -= dmg; }
-    virtual void setHp(int hp) { m_hp = hp; }
-    virtual int getHp() { return m_hp; }
+    void decreaseHp(int dmg) { m_hp -= dmg; }
+    void setHp(int hp) { m_hp = hp; }
+    int getHp() { return m_hp; }
+    virtual void move(Direction dir);
 private:
     int m_hp;
 };
@@ -64,34 +68,50 @@ private:
     int m_sonar;
 };
 
-// --- Protestor Class Implementation ---
-// Abstract base class for protestors
-class Protestor : public Person {
+// --- Protester Class Implementation ---
+// Abstract base class for Protesters
+class Protester : public Person {
 public:
-    Protestor(int imageId, int x, int y, Direction dir, double size, unsigned int depth, StudentWorld* world, int hp) : Person(imageId, x, y, dir, size, depth, world, hp), m_annoyance(0) {}
-    virtual ~Protestor() {}
+    Protester(int imageId, int x, int y, StudentWorld* world, int hp);
+    virtual ~Protester() {}
     virtual void doSomething() = 0;
+    int isARestTick() {
+        if (m_internalClock == m_ticksToWaitBetweenMoves) {
+            m_internalClock = 0;
+            return false;
+        }
+        else {
+            return true;
+        }
+    }
+    void incrementInternalClock() { m_internalClock++; }
+    bool getIsLeaving() { return m_isLeavingField; }
+    void setIsLeaving(bool leavingField) { m_isLeavingField = leavingField; }
+    void pathfindTo(int x, int y);
 private:
-    int m_annoyance;
+    int m_numSquaresToMoveInCurrentDirections;
+    int m_ticksToWaitBetweenMoves;
+    bool m_isLeavingField;
+    int m_internalClock;
 };
 
-// --- RegularProtestor Class Implementation ---
-// Represents the regular protestors
-class RegularProtestor : public Protestor {
+// --- RegularProtester Class Implementation ---
+// Represents the regular Protesters
+class RegularProtester : public Protester {
 public:
-    RegularProtestor(int x, int y, StudentWorld* world) : Protestor(IID_PROTESTER, x, y, left, 1, 0, world, 5) {}
-    ~RegularProtestor() {}
+    RegularProtester(int x, int y, StudentWorld* world) : Protester(IID_PROTESTER, x, y, world, 5) {}
+    ~RegularProtester() {}
     void doSomething() override;
 private:
 
 };
 
-// --- HardcoreProtestor Class Implementation ---
-// Represents the harcore protestors
-class HardcoreProtestor : public Protestor {
+// --- HardcoreProtester Class Implementation ---
+// Represents the harcore Protesters
+class HardcoreProtester : public Protester {
 public:
-    HardcoreProtestor(int x, int y, StudentWorld* world) : Protestor(IID_HARD_CORE_PROTESTER, x, y, left, 1, 0, world, 20) {}
-    ~HardcoreProtestor() {}
+    HardcoreProtester(int x, int y, StudentWorld* world) : Protester(IID_HARD_CORE_PROTESTER, x, y, world, 20) {}
+    ~HardcoreProtester() {}
     void doSomething() override;
 private:
 

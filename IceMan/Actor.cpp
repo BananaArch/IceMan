@@ -2,8 +2,44 @@
 #include "StudentWorld.h"
 #include <memory>
 using namespace std;
+
+// TODO
+void Person::move(Direction dir) {
+    switch (dir) {
+    case none:
+        break;
+    case up:
+        // check that it's in bounds and does not contain boulder
+        if (getY() < 60 && !getWorld()->containsBoulder(getX(), getY() + 1))
+            moveTo(getX(), getY() + 1);
+        break;
+    case down:
+        // check that it's in bounds and does not contain boulder
+        if (getY() > 0 && !getWorld()->containsBoulder(getX(), getY() - 1))
+            moveTo(getX(), getY() - 1);
+        break;
+    case right:
+        // check that it's in bounds and does not contain boulder
+        if (getX() < 60 && !getWorld()->containsBoulder(getX() + 1, getY()))
+            moveTo(getX() + 1, getY());
+        break;
+    case left:
+        // check that it's in bounds and does not contain boulder
+        if (getX() > 0 && !getWorld()->containsBoulder(getX() - 1, getY()))
+            moveTo(getX() - 1, getY());
+        break;
+    default:
+        break;
+    }
+}
+
 // Iceman move and dig mechanics
 void Iceman::doSomething() {
+
+    if (getHp() <= 0 || !isAlive()) {
+        unalive();
+        return;
+    }
 
     int val;
     // reading user input
@@ -15,53 +51,50 @@ void Iceman::doSomething() {
     switch (val) {
             // unalive themselves
         case KEY_PRESS_ESCAPE:
-            decreaseHp(10);
+            setHp(0);
             break;
             // TODO: implement water squirt logic
         case KEY_PRESS_SPACE: // page 28 part b
             break;
-            // move left
         case 'z': // TODO: implement sonar logic
         case 'Z':
             break;
         case KEY_PRESS_TAB: // TODO: Implement gold logic
             break;
         case KEY_PRESS_LEFT:
-            // Check the position of iceman that it is in bound
-            getWorld()->getField(getX()-1, getY(), ptr);
-            if (getX() <= 0 || ptr != NULL) {
-                break;
+            if (getDirection() == left) {
+                move(left);
             }
-            // Move the iceman
-            setDirection(left);
-            moveTo(getX()-1, getY());
+            else {
+                setDirection(left);
+            }
             break;
             // move right
         case KEY_PRESS_RIGHT:
-            getWorld()->getField(getX()+1, getY(), ptr);
-            if (getX() >= 63 || ptr != NULL) {
-                break;
+            if (getDirection() == right) {
+                move(right);
             }
-            setDirection(right);
-            moveTo(getX()+1, getY());
+            else {
+                setDirection(right);
+            }
             break;
             // move upwards
         case KEY_PRESS_UP:
-            getWorld()->getField(getX(), getY()+1, ptr);
-            if (getY() >= 63 || ptr != NULL) {
-                break;
+            if (getDirection() == up) {
+                move(up);
             }
-            setDirection(up);
-            moveTo(getX(), getY()+1);
+            else {
+                setDirection(up);
+            }
             break;
             // move downwards
         case KEY_PRESS_DOWN:
-            getWorld()->getField(getX(), getY()-1, ptr);
-            if (getY() <= 0 || ptr != NULL) {
-                break;
+            if (getDirection() == down) {
+                move(down);
             }
-            setDirection(down);
-            moveTo(getX(), getY()-1);
+            else {
+                setDirection(down);
+            }
             break;
         default:
             break;
@@ -82,6 +115,42 @@ void Iceman::breakIce() {
     if (dig) {
         getWorld()->playSound(SOUND_DIG);
     }
+}
+
+// constructor for protester
+Protester::Protester(int imageId, int x, int y, StudentWorld* world, int hp) : Person(imageId, x, y, left, 1.0, 0, world, hp), m_isLeavingField(false), m_internalClock(0) {
+    m_numSquaresToMoveInCurrentDirections = 8 + (std::rand() % (60 - 8 + 1));
+    m_ticksToWaitBetweenMoves = (0 > (3 - getWorld()->getLevel() / 4)) ? 0 : (3 - getWorld()->getLevel() / 4); // max using ternary operator
+    setVisible(true);
+}
+
+void Protester::pathfindTo(int x, int y) {
+
+}
+
+void RegularProtester::doSomething() {
+    if (!isAlive()) return;
+    
+    // checks if it is a rest tick
+    if (isARestTick()) {
+        incrementInternalClock();
+        return;
+    }
+
+    // check if hp is zero or less, if so then it leaves field
+    if (getHp() <= 0) {
+        setIsLeaving(true);
+    }
+
+    // if it's in the leaving field state
+    if (getIsLeaving()) {
+        // if it's at the exit point
+        if (getX() == 60 && getY() == 60) unalive();
+
+    }
+
+
+
 }
 
 void Boulder::doSomething() {

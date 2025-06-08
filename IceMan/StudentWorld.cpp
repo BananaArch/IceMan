@@ -80,7 +80,7 @@ void StudentWorld::setBoulder() {
         // reposition if position is invalid
         do {
             x = 10 - (i*2); // rand() % 61;
-            y = rand() % 61;
+            y = std::rand() % 61;
         } while ((x<0 || x>60) || (y<20 || y>56) || (x > 26 && x < 37)
                  || checkObjectDist(x, y));
         
@@ -103,8 +103,8 @@ void StudentWorld::setOil() {
         int x , y;
         // reposition if position is invalid
         do {
-            x = rand() % 61;
-            y = rand() % 61;
+            x = std::rand() % 61;
+            y = std::rand() % 61;
         } while ((x<0 || x>60) || (y<0 || y>56) || (x > 26 && x < 37)
                  || checkObjectDist(x, y));
 

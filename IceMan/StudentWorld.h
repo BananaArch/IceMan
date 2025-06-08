@@ -43,15 +43,29 @@ public:
     virtual int move()
     {
         // if player died
-        if (m_player && m_player->getHp() == 0) {
+        if (m_player && m_player->getHp() <= 0) {
             decLives();
             return GWSTATUS_PLAYER_DIED;
         }
         setStats();
-        for (auto actor : dsList) {
-            if (actor->isAlive())
-                actor->doSomething();
+
+        // clean up any dead boulders
+        for (auto it = bList.begin(); it != bList.end(); ) {
+            if ((*it)->isAlive()) ++it;
+            else it = bList.erase(it);
         }
+
+        // doSomething cycle
+        for (auto it = dsList.begin(); it != dsList.end(); ) {
+            if ((*it)->isAlive()) { // if actor is alive
+                (*it)->doSomething(); // do something
+                ++it; // go to next actor if actor is alive
+            }
+            else { // if actor is not alive
+                it = dsList.erase(it); // erase returns the next valid 
+            } // Notice that we only increment the iterator when we don't erase
+        }
+
         // This code is here merely to allow the game to build, run, and terminate after you hit enter a few times.
         // Notice that the return value GWSTATUS_PLAYER_DIED will cause our framework to end the current level.
         
@@ -104,6 +118,19 @@ public:
     }
     
     std::vector<std::shared_ptr<Boulder>> getBoulders() {return bList;}
+    
+    // see if prospective move is legal or not based on whether or not there is a boulder blocking it
+    bool containsBoulder(int x, int y) {
+        for (auto boulder : bList) {
+            // Check if the person's prospective coordinates (x, y) falls within the 4x4 area of any boulder
+            if ((x + 4) > boulder->getX() && x < boulder->getX() + 4 &&
+                (y + 4) > boulder->getY() && y < boulder->getY() + 4) {
+                return true; 
+            }
+        }
+        return false; // No boulder found occupying the spot (x, y)
+    }
+
 private:
     // pointer of iceman/player
     std::shared_ptr<Iceman> m_player;
