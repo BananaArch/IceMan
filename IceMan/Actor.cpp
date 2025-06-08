@@ -118,7 +118,8 @@ void Iceman::breakIce() {
 
 void Iceman::decreaseHp(int dmg)  {
     Person::decreaseHp(dmg);
-    getWorld()->playSound(SOUND_PLAYER_ANNOYED);
+    if (getHp() > 0)
+        getWorld()->playSound(SOUND_PLAYER_ANNOYED);
 }
 
 // constructor for protester
@@ -192,12 +193,12 @@ void Boulder::doSomething() {
             }
             // check if the bolder hits bolder
             for (auto b : getWorld()->getBoulders()) {
-                if ((b->getX() <= x && b->getX() + 3 >= x) && b->getY() == this->getY()-4) {
+                if (b->getX() <= x && b->getX() + 3 >= x && b->getY() == this->getY()-4) {
                         crash = true;
                 }
             }
             // check if the boulder hits player
-            if ((getWorld()->getIceman()->getX() <= x && getWorld()->getIceman()->getX() + 3 >= x) && getWorld()->getIceman()->getY() == this->getY()-4) {
+            if (getWorld()->getIceman()->getX() <= x && getWorld()->getIceman()->getX() + 3 >= x && getWorld()->getIceman()->getY() == this->getY()-4) {
                 getWorld()->getIceman()->setHp(0);
             }
             
@@ -259,6 +260,52 @@ void OilBarrel::doSomething() {
             getWorld()->playSound(SOUND_FOUND_OIL);
             getWorld()->increaseScore(1000);
             unalive();
+        }
+    }
+}
+
+void Gold::doSomething() {
+    // if golden nugget is not picked up by player yet
+    if (!picked) {
+        int dist_x, dist_y;
+        dist_x = getX() - getWorld()->getIceman()->getX();
+        dist_y = getY() - getWorld()->getIceman()->getY();
+        if (!isVisible()) {
+            if ((dist_x * dist_x + dist_y * dist_y) <= 16) {
+                setVisible(true);
+            }
+        }
+        else {
+            if ((dist_x * dist_x + dist_y * dist_y) <= 9) {
+                setVisible(false);
+                getWorld()->playSound(SOUND_GOT_GOODIE);
+                getWorld()->increaseScore(10);
+                getWorld()->getIceman()->pickGold();
+                unalive();
+            }
+        }
+    }
+    // if golden nugget is picked and then placed by player
+    else {
+        std::vector<std::shared_ptr<Protester>> pList;
+        getWorld()->getpList(pList);
+        for (auto it = pList.begin(); it != pList.end(); ++it) {
+            // check if it's null just in case
+            if (!(*it)) continue;
+            
+            int x = (*it)->getX();
+            int y = (*it)->getY();
+            // if a protestor is hit, damage it and increase score
+            int dist_x = getX() - x, dist_y = getY() - y;
+            // when protestor is close enough, pick up gold and leave
+            if ((dist_x * dist_x + dist_y * dist_y) <= 9) {
+                setVisible(false);
+                getWorld()->playSound(SOUND_PROTESTER_FOUND_GOLD);
+                getWorld()->increaseScore(25);
+                unalive();
+                (*it)->setIsLeaving(true);
+                break;
+            }
         }
     }
 }
