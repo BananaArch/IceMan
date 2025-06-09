@@ -561,6 +561,13 @@ void Gold::doSomething() {
     }
     // if golden nugget is picked and then placed by player
     else {
+        // Dropped gold can only survive for 100 ticks
+        if (getTimer() >= 100) {
+            setVisible(false);
+            unalive();
+        }
+        incTimer();
+        // check if it's picked up by a protester
         std::vector<std::shared_ptr<Protester>> pList;
         getWorld()->getpList(pList);
         for (auto it = pList.begin(); it != pList.end(); ++it) {

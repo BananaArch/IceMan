@@ -218,8 +218,11 @@ public:
     Goodies(int imageId, int x, int y, Direction dir, double size, unsigned int depth, StudentWorld* world) : Actor(imageId, x, y, dir, size, depth, world) {}
     virtual ~Goodies() {}
     virtual void doSomething() = 0;
+protected:
+    size_t getTimer() { return life_timer;}
+    void incTimer() {life_timer++;}
 private:
-
+    size_t life_timer = 0;
 };
 
 
@@ -244,7 +247,6 @@ public:
     void doSomething() override;
 
 private:
-
 };
 
 // --- Sonar Class Implementation ---
