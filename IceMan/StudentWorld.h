@@ -66,6 +66,12 @@ public:
             else it = oList.erase(it);
         }
         
+        // clean up any dead gold nuggets
+        for (auto it = gList.begin(); it != gList.end(); ) {
+            if ((*it)->isAlive()) ++it;
+            else it = gList.erase(it);
+        }
+        
         // clean up any dead actors in dsList
         for (auto it = dsList.begin(); it != dsList.end(); ) {
             if ((*it)->isAlive()) ++it;
@@ -123,6 +129,7 @@ public:
         pList.clear();
         bList.clear();
         oList.clear();
+        gList.clear();
     }
     // getter function for elements in field
     void getField(int x, int y, std::shared_ptr<Actor>& pos) const {
@@ -279,9 +286,11 @@ private:
     std::vector<std::shared_ptr<Protester>> pList;
     // vector to keep track all oil barrels
     std::vector<std::shared_ptr<OilBarrel>> oList;
+    // vector to keep track all gold nuggets
+    std::vector<std::shared_ptr<Gold>> gList;
     // auxilery function for init(), see StudentWorld.cpp
     void startWorld();
-    // Display game stats (in progress)
+    // Display game stats
     void setStats();
     // Add boulders to the game
     void setBoulder();
@@ -291,6 +300,8 @@ private:
     bool checkObjectDist(int x, int y);
     // Add oil to the game
     void setOil();
+    // Add gold nugget to the game
+    void setGold();
     // generate return map for pathfinding
     void generateReturnMap();
     // generate player map for pathfinding

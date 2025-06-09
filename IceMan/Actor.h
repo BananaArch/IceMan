@@ -66,6 +66,8 @@ public:
     void breakIce();
     // player taking damage
     void decreaseHp(int dmg) override;
+    // increment gold count
+    void pickGold() {m_gold++;}
     // getter functions for player state
     size_t getWater() const {return m_water;}
     size_t getGold() const {return m_gold;}
@@ -270,9 +272,9 @@ public:
     Gold(int x, int y, StudentWorld* world) : Goodies(IID_GOLD, x, y, right, 1, 2, world) {}
     ~Gold() {}
     void doSomething() override;
-
+    void pickable(bool state) {picked = state;}
 private:
-
+    bool picked = false;
 };
 
 

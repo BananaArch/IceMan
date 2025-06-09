@@ -4,6 +4,7 @@
 #include <vector>
 #include <queue>
 #include <cstdlib>
+#include <future>
 
 using namespace std;
 
@@ -15,6 +16,7 @@ GameWorld* createStudentWorld(string assetDir)
 void StudentWorld::startWorld() {
     // intialize 2d array that keep track of all actors
     field.resize(64, std::vector<std::shared_ptr<Actor>>(64, nullptr));
+    
     // set up the ice objects on its own 2d ice array
     for (int x=0; x<64; x++) {
         for (int y=0; y<64; y++) {
@@ -26,7 +28,17 @@ void StudentWorld::startWorld() {
             }
         }
     }
-
+    // TODO: Race condition, might try to fix later
+    // using multi threading to initialize game objects
+//    auto boulderFuture = std::async(std::launch::async, [this]() {
+//        this->setBoulder();
+//    });
+//    auto oilFuture = std::async(std::launch::async, [this]() {
+//        this->setOil();
+//    });
+//    auto goldFuture = std::async(std::launch::async, [this]() {
+//        this->setGold();
+//    });
     for (int x = 0; x < 61; x++) {
         for (int y = 0; y < 61; y++) {
 
@@ -39,14 +51,17 @@ void StudentWorld::startWorld() {
     // initialize tickCount
     m_tickCount = 0;
 
-
     // initialize the iceman
     m_player = std::make_shared<Iceman>(this);
     dsList.emplace_back(m_player);
     setBoulder();
     setOil();
+    setGold();
+//    boulderFuture.get();
+//    oilFuture.get();
+//    goldFuture.get();
 }
-// TODO: replace with the correct getter functions
+// set stats for scoreboard
 void StudentWorld::setStats() {
     int level = getLevel();
     int lives = getLives();
@@ -107,7 +122,7 @@ void StudentWorld::setBoulder() {
         bList.emplace_back(newBoulder);
     }
 }
-
+// Add oil to the game
 void StudentWorld::setOil() {
     int level = getLevel();
     int num = min(2 + level, 21);
@@ -124,6 +139,25 @@ void StudentWorld::setOil() {
         setField(x, y, newOil);
         dsList.emplace_back(newOil);
         oList.emplace_back(newOil);
+    }
+}
+// Add gold to the game
+void StudentWorld::setGold() {
+    int level = getLevel();
+    int num = max(5 - level, 2);
+    for (int i = 0; i < num; i++) {
+        int x , y;
+        // reposition if position is invalid
+        do {
+            x = std::rand() % 61;
+            y = std::rand() % 61;
+        } while ((x<=0 || x>=60) || (y<=0 || y>=56) || (x > 26 && x < 37)
+                 || checkObjectDist(x, y));
+
+        auto newGold = make_shared<Gold>(x, y, this);
+        setField(x, y, newGold);
+        dsList.emplace_back(newGold);
+        gList.emplace_back(newGold);
     }
 }
 // check distance between objects to ensure they're not too close
