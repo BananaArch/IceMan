@@ -252,6 +252,10 @@ public:
 
         return bestDir;
     }
+
+    int getDistanceToPlayer(int x, int y) {
+        return playerMap[x][y];
+    }
     
     unsigned long getTickCount() { return m_tickCount; }
 

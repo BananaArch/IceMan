@@ -39,15 +39,7 @@ void StudentWorld::startWorld() {
 //    auto goldFuture = std::async(std::launch::async, [this]() {
 //        this->setGold();
 //    });
-    for (int x = 0; x < 61; x++) {
-        for (int y = 0; y < 61; y++) {
 
-            returnMap[x][y] = -1;
-            playerMap[x][y] = -1;
-            
-        }
-    }
-    
     // initialize tickCount
     m_tickCount = 0;
 
@@ -60,6 +52,13 @@ void StudentWorld::startWorld() {
 //    boulderFuture.get();
 //    oilFuture.get();
 //    goldFuture.get();
+
+    // TODO: Use multithreading to generate maps
+
+    generatePlayerMap();
+    generateReturnMap();
+
+
 }
 // set stats for scoreboard
 void StudentWorld::setStats() {
