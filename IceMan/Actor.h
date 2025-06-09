@@ -30,7 +30,6 @@ private:
 // --- Person Base Class Implementation ---
 // Represents the people in the game -- iceman and the Protesters
 
-// TODO: Boulder logic
 class Person : public Actor {
 public:
     Person(int imageId, int x, int y, Direction dir, double size, unsigned int depth, StudentWorld* world, int hp) : Actor(imageId, x, y, dir, size, depth, world), m_hp(hp) {
@@ -68,6 +67,8 @@ public:
     void decreaseHp(int dmg) override;
     // increment gold count
     void pickGold() {m_gold++;}
+    // decrement gold count
+    void dropGold() {m_gold--;}
     // getter functions for player state
     size_t getWater() const {return m_water;}
     size_t getGold() const {return m_gold;}
@@ -260,12 +261,16 @@ private:
 
 // --- Gold Class Implementation ---
 // Represents gold nuggets you can pickup
+// TODO: Need to make dropped gold be temporary instead of permanent
 class Gold : public Goodies {
 public:
     Gold(int x, int y, StudentWorld* world) : Goodies(IID_GOLD, x, y, right, 1, 2, world) {}
     ~Gold() {}
     void doSomething() override;
-    void pickable(bool state) {picked = state;}
+    void pickable(bool state) {
+        picked = state;
+        if (picked) setVisible(true);
+    }
 private:
     bool picked = false;
 };

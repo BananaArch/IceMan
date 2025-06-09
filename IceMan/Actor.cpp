@@ -67,6 +67,10 @@ void Iceman::doSomething() {
         case 'Z':
             break;
         case KEY_PRESS_TAB: // TODO: Implement gold logic
+            if (getGold() == 0) 
+                return;
+            getWorld()->addGold(getX(), getY());
+            dropGold();
             break;
         case KEY_PRESS_LEFT:
             if (getDirection() == left) {
@@ -216,7 +220,7 @@ double Protester::getEuclidianDistanceTo(int x, int y) const {
 
 // helper function for doSomething shared by both regular and hardcore protester
 // returns whether or not it should exit main doSomething() function
-// handles preaction things such as, checking ifalive, dealing with rest and stun ticks, moving to leave location if leaving 
+// handles preaction things such as, checking ifalive, dealing with rest and stun ticks, moving to leave location if leaving
 bool Protester::doSomethingPreAction() {
 
     if (!isAlive()) return true;
@@ -305,7 +309,7 @@ bool Protester::tryDirectLineMoveToPlayer() {
         bool walkableToIcemanInX = true;
         bool walkableToIcemanInY = true;
 
-        // Case 1: Iceman and protester are in the same row 
+        // Case 1: Iceman and protester are in the same row
         if (protesterY == icemanY) {
             // Determine direction to iterate: +1 if Iceman is to the right, -1 if to the left
             int signumX = (icemanX > protesterX) - (icemanX < protesterX);
@@ -319,7 +323,7 @@ bool Protester::tryDirectLineMoveToPlayer() {
                 }
             }
 
-            // If path is clear, move toward Iceman along X direction 
+            // If path is clear, move toward Iceman along X direction
             if (walkableToIcemanInX) {
                 moveToPlayer(); // move in X direction
                 setNumSquaresToMoveInCurrentDirection(0);
@@ -327,7 +331,7 @@ bool Protester::tryDirectLineMoveToPlayer() {
             }
         }
 
-        // Case 2: Iceman and protester are in the same column 
+        // Case 2: Iceman and protester are in the same column
         if (protesterX == icemanX) {
             // Determine direction to iterate: +1 if Iceman is below, -1 if above
             int signumY = (icemanY > protesterY) - (icemanY < protesterY);
@@ -341,7 +345,7 @@ bool Protester::tryDirectLineMoveToPlayer() {
                 }
             }
 
-            // If path is clear, move toward Iceman along Y direction 
+            // If path is clear, move toward Iceman along Y direction
             if (walkableToIcemanInY) {
                 moveToPlayer(); // move in Y direction
                 setNumSquaresToMoveInCurrentDirection(0);
@@ -367,7 +371,7 @@ void Protester::randomlyMove() {
         setNumSquaresToMoveInCurrentDirection(steps);
     }
 
-    // The Regular Protester hasn’t made a perpendicular turn in the last 200 nonresting ticks
+    // The Regular Protester hasnï¿½t made a perpendicular turn in the last 200 nonresting ticks
     if (getNonRestingTicksSincePerpendicularMove() > 200) {
 
         MoveDirection currentDirection = getCurrentDirection();
@@ -389,7 +393,7 @@ void Protester::randomlyMove() {
             int randomIndex = rand() % perpendicularOptions.size();
             MoveDirection currentDirection = perpendicularOptions[randomIndex];
 
-            // Set new direction 
+            // Set new direction
             setCurrentDirection(currentDirection);
 
             int newSteps = 8 + rand() % (60 - 8 + 1);

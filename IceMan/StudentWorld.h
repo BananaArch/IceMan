@@ -78,6 +78,14 @@ public:
             else it = dsList.erase(it);
         }
         
+        // clean up the field, kinda slow, might fix later
+        for (int i = 0; i < 64; i++) {
+            for (int j = 0; j < 64; j++) {
+                if (field[i][j] != nullptr && !field[i][j]->isAlive())
+                    field[i][j] = nullptr;
+            }
+        }
+        
         // Launch new pathfinding tasks every 20 ticks
         if (m_tickCount % 20 == 0) {
 
@@ -190,7 +198,8 @@ public:
         }
         return false;
     }
-
+    // Add a new gold when player drop it
+    void addGold(int x, int y);
     // getter function to allow actors accessing pList
     void getpList(std::vector<std::shared_ptr<Protester>> &copyList) const{
         copyList = pList;
@@ -306,6 +315,7 @@ private:
     void setOil();
     // Add gold nugget to the game
     void setGold();
+    
     // generate return map for pathfinding
     void generateReturnMap();
     // generate player map for pathfinding

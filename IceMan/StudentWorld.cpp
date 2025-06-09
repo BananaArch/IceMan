@@ -159,6 +159,14 @@ void StudentWorld::setGold() {
         gList.emplace_back(newGold);
     }
 }
+void StudentWorld::addGold(int x, int y) {
+    auto newGold = make_shared<Gold>(x, y, this);
+    newGold->pickable(true);
+    setField(x, y, newGold);
+    dsList.emplace_back(newGold);
+    gList.emplace_back(newGold);
+    
+}
 // check distance between objects to ensure they're not too close
 // **TRUE means not okay, FALSE means the position is fine!**
 bool StudentWorld::checkObjectDist(int x, int y) {
