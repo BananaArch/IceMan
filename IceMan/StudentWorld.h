@@ -9,10 +9,6 @@
 #include <vector>
 #include <future>
 
-/*
-Can we implement these methods inside StudentWorld.cpp instead of StudentWorld.h?
-*/
-
 class StudentWorld : public GameWorld
 {
 public:
@@ -196,7 +192,7 @@ public:
     // returns the best direction to move when trying
     MoveDirection bestDirectionToReturn(int x, int y) {
         int bestVal = returnMap[x][y];
-        MoveDirection bestDir = none;
+        MoveDirection bestDir = moveNone;
 
         // Check left
         if (x > 0 && returnMap[x - 1][y] < bestVal) {
@@ -224,7 +220,7 @@ public:
 
     MoveDirection bestDirectionToPlayer(int x, int y) {
         int bestVal = playerMap[x][y];
-        MoveDirection bestDir = none;
+        MoveDirection bestDir = moveNone;
 
         // Check left
         if (x > 0 && playerMap[x - 1][y] < bestVal) {
@@ -250,7 +246,8 @@ public:
         return bestDir;
     }
     
-    int getTickCount() { return m_tickCount; }
+    unsigned long getTickCount() { return m_tickCount; }
+
 private:
 
     unsigned long m_tickCount = 0;

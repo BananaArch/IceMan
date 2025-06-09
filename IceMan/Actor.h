@@ -8,7 +8,7 @@
 
 #include<cstdlib>
 
-enum MoveDirection { none, moveUp, moveRight, moveLeft, moveDown };
+enum MoveDirection { moveNone, moveUp, moveRight, moveLeft, moveDown };
 
 class StudentWorld;
 // Students:  Add code to this file, Actor.cpp, StudentWorld.h, and StudentWorld.cpp
@@ -87,12 +87,50 @@ public:
     int isARestTick();
     bool getIsLeaving() { return m_isLeavingField; }
     void setIsLeaving(bool leavingField) { m_isLeavingField = leavingField; }
+    unsigned long getNonRestingTicksSinceAnnoyingPlayer() { return m_nonRestingTickSinceAnnoyingPlayer; }
+    void resetNonRestingTicksSinceAnnoyingPlayer() { m_nonRestingTickSinceAnnoyingPlayer = 0;  }
+    void incrementNonRestingTicksSinceAnnoyingPlayer() { m_nonRestingTickSinceAnnoyingPlayer++; }
+    unsigned long getNonRestingTicksSincePerpendicularMove() { return m_nonRestingTicksSincePerpendicularMove; }
+    void resetNonRestingTicksSincePerpendicularMove() { m_nonRestingTicksSincePerpendicularMove = 0; }
+    void incrementNonRestingTicksSincePerpendicularMove() { m_nonRestingTicksSincePerpendicularMove++; }
+    int getNumSquaresToMoveInCurrentDirection() { return m_numSquaresToMoveInCurrentDirections; }
+    void setNumSquaresToMoveInCurrentDirection(int numSquaresToMoveInCurrentDirection) { m_numSquaresToMoveInCurrentDirections = numSquaresToMoveInCurrentDirection;  }
+    void decrementNumSquaresToMoveInCurrentDirection() { m_numSquaresToMoveInCurrentDirections--; }
+    void setTicksToWaitBetweenMoves(int ticksToWaitBetweenMoves) { m_ticksToWaitBetweenMoves = ticksToWaitBetweenMoves; }
+    int getStunTicks() { return m_stunTicks; }
+    void decrementStunTicks() { m_stunTicks--; }
+    void setStunTicks() { m_stunTicks = 0; }
     void moveToLeaveLocation();
     void moveToPlayer();
+    void pickRandomValidDirection();
+    MoveDirection getCurrentDirection() { return m_currentDirection; }
+    void setCurrentDirection(MoveDirection currentDirection) { m_currentDirection = currentDirection; }
+    bool canMoveTo(int x, int y);
+    bool canMoveInDirection(MoveDirection dir);
+    // function that returns if the protester has direct line of sight of the iceman
+    bool isFacingIceman(int icemanX, int icemanY) const { 
+        Direction direction = getDirection();
+        switch (direction) {
+        case right:
+            return icemanX > getX() && abs(icemanY - getY()) < 4; // if iceman is to the right of the protester AND they're on same height
+        case left:
+            return icemanX < getX() && abs(icemanY - getY()) < 4; // if iceman is to the left of the protester AND they're on same height
+        case up:
+            return icemanY > getY() && abs(icemanX - getX()) < 4; // if iceman is to the above of the protester AND they're on same column
+        case down:
+            return icemanY < getY() && abs(icemanX - getX()) < 4; // if iceman is to the below of the protester AND they're on same column
+        default:
+            return false;
+        }
+    }
 private:
+    int m_stunTicks;
     int m_numSquaresToMoveInCurrentDirections;
     int m_ticksToWaitBetweenMoves;
     bool m_isLeavingField;
+    unsigned long m_nonRestingTickSinceAnnoyingPlayer;
+    unsigned long m_nonRestingTicksSincePerpendicularMove;
+    MoveDirection m_currentDirection;
 };
 
 // --- RegularProtester Class Implementation ---

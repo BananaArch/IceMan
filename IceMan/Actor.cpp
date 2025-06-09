@@ -2,30 +2,38 @@
 #include "StudentWorld.h"
 #include <memory>
 #include <queue>
+#include <cmath>
 using namespace std;
 
-// TODO
 void Person::move(MoveDirection dir) {
     switch (dir) {
     case moveUp:
         // check that it's in bounds and does not contain boulder
-        if (getY() < 60 && !getWorld()->containsBoulder(getX(), getY() + 1))
+        if (getY() < 60 && !getWorld()->containsBoulder(getX(), getY() + 1)) {
             moveTo(getX(), getY() + 1);
+            setDirection(up);
+        }
         break;
     case moveDown:
         // check that it's in bounds and does not contain boulder
-        if (getY() > 0 && !getWorld()->containsBoulder(getX(), getY() - 1))
+        if (getY() > 0 && !getWorld()->containsBoulder(getX(), getY() - 1)) {
             moveTo(getX(), getY() - 1);
+            setDirection(down);
+        }
         break;
     case moveRight:
         // check that it's in bounds and does not contain boulder
-        if (getX() < 60 && !getWorld()->containsBoulder(getX() + 1, getY()))
+        if (getX() < 60 && !getWorld()->containsBoulder(getX() + 1, getY())) {
             moveTo(getX() + 1, getY());
+            setDirection(right);
+        }
         break;
     case moveLeft:
         // check that it's in bounds and does not contain boulder
-        if (getX() > 0 && !getWorld()->containsBoulder(getX() - 1, getY()))
+        if (getX() > 0 && !getWorld()->containsBoulder(getX() - 1, getY())) {
             moveTo(getX() - 1, getY());
+            setDirection(left);
+        }
         break;
     default:
         break;
@@ -122,14 +130,14 @@ void Iceman::decreaseHp(int dmg)  {
 }
 
 // constructor for protester
-Protester::Protester(int imageId, int x, int y, StudentWorld* world, int hp) : Person(imageId, x, y, left, 1.0, 0, world, hp), m_isLeavingField(false) {
+Protester::Protester(int imageId, int x, int y, StudentWorld* world, int hp) : Person(imageId, x, y, left, 1.0, 0, world, hp), m_isLeavingField(false), m_nonRestingTickSinceAnnoyingPlayer(0), m_nonRestingTicksSincePerpendicularMove(0), m_currentDirection(moveNone), m_stunTicks(0) {
     m_numSquaresToMoveInCurrentDirections = 8 + (std::rand() % (60 - 8 + 1));
     m_ticksToWaitBetweenMoves = (0 > (3 - getWorld()->getLevel() / 4)) ? 0 : (3 - getWorld()->getLevel() / 4); // max using ternary operator
     setVisible(true);
 }
 
 int Protester::isARestTick() {
-    return getWorld()->getTickCount() % m_ticksToWaitBetweenMoves != 0;
+    return (m_ticksToWaitBetweenMoves == 0) ? false : getWorld()->getTickCount() % m_ticksToWaitBetweenMoves != 0;
 }
 
 void Protester::moveToLeaveLocation() {
@@ -140,20 +148,74 @@ void Protester::moveToPlayer() {
     move(getWorld()->bestDirectionToPlayer(getX(), getY()));
 }
 
+bool Protester::canMoveTo(int x, int y) {
+    return x >= 0 && x < 64 && y >= 0 && y < 64 &&
+        !getWorld()->containsIce(x, y) &&
+        !getWorld()->containsBoulder(x, y);
+}
+
+bool Protester::canMoveInDirection(MoveDirection dir) {
+    int x = getX();
+    int y = getY();
+    switch (dir) {
+    case moveUp:    return canMoveTo(x, y + 1);
+    case moveDown:  return canMoveTo(x, y - 1);
+    case moveLeft:  return canMoveTo(x - 1, y);
+    case moveRight: return canMoveTo(x + 1, y);
+    default:        return false;
+    }
+}
+
+void Protester::pickRandomValidDirection() {
+    bool foundDirection = false;
+
+    while (!foundDirection) {
+        int dir = rand() % 4;
+        MoveDirection tryDirection;
+
+        switch (dir) {
+        case 0: tryDirection = moveRight; break;
+        case 1: tryDirection = moveLeft;  break;
+        case 2: tryDirection = moveDown;  break;
+        case 3: tryDirection = moveUp;    break;
+        default: continue; // Shouldn't happen, but skip to next iteration just in case
+        }
+
+        if (canMoveInDirection(tryDirection)) {
+            setCurrentDirection(tryDirection);
+            foundDirection = true;
+        }
+    }
+}
+
+
 void RegularProtester::doSomething() {
     if (!isAlive()) return;
+
+    if (getStunTicks() >= 0) {
+        decrementStunTicks();
+        return;
+    }
     
     // checks if it is a rest tick
     if (isARestTick()) {
-        std::cout << "rest tick" << std::endl;
         return;
     }
 
-    std::cout << "not a rest tick" << std::endl;
+    // increment nonRestingTicksSinceLastAnnoyingPlayer since this is not a resting tick.
+    // if the protester DOES annoy a player this tick, then we reset it later
+
+    incrementNonRestingTicksSinceAnnoyingPlayer();
+
+    // increment nngTicksSincePerpendicularMove since this is not a resting tick.
+    // if the protester DOES move perpendicularly during this tick, then we reset it later
+
+    incrementNonRestingTicksSincePerpendicularMove();
 
     // check if hp is zero or less, if so then it leaves field
     if (!getIsLeaving() && getHp() <= 0) {
         setIsLeaving(true);
+        setTicksToWaitBetweenMoves(0);
     }
 
     // if it's in the leaving field state
@@ -167,7 +229,131 @@ void RegularProtester::doSomething() {
         return;
     }
 
-    moveToPlayer();
+    int icemanX = getWorld()->getIceman()->getX();
+    int icemanY = getWorld()->getIceman()->getY();
+    int protesterX = getX();
+    int protesterY = getY();
+
+    int dx = protesterX - icemanX;
+    int dy = protesterY - icemanY;
+    double distanceToIceman = sqrt(dx * dx + dy * dy);
+
+    // Annoy Mechanism -- STEP FOUR
+    
+    // if protester hasn't shoulted within its last non-resting 15 ticks
+    // AND they are within distance of 4 units of Iceman
+    // AND is facing iceman
+
+    if (getNonRestingTicksSinceAnnoyingPlayer() > 15 && distanceToIceman <= 4.0 && isFacingIceman(icemanX, icemanY)) {
+        getWorld()->playSound(SOUND_PROTESTER_YELL);
+        getWorld()->getIceman()->decreaseHp(2);
+        resetNonRestingTicksSinceAnnoyingPlayer();
+        return;
+    }
+
+    // Walking to player mechanism (if direct line of sight) -- STEP FIVE
+
+    // If Iceman is in a straight horizontal or vertical line of sight to the protester
+    // (even if the protester isn't facing Iceman)
+    // AND if the protester is more than 4 units away from Iceman
+    if ((protesterX == icemanX || protesterY == icemanY) && distanceToIceman > 4) {
+
+        // Booleans to track whether a clear path exists to Iceman along X or Y axis
+        bool walkableToIcemanInX = true;
+        bool walkableToIcemanInY = true;
+
+        // Case 1: Iceman and protester are in the same row 
+        if (protesterY == icemanY) {
+            // Determine direction to iterate: +1 if Iceman is to the right, -1 if to the left
+            int signumX = (icemanX > protesterX) - (icemanX < protesterX);
+
+            // Check each tile between protester and Iceman for obstructions
+            for (int i = protesterX + signumX; i != icemanX; i += signumX) {
+                // If a boulder or ice is in the way, path is not walkable
+                if (getWorld()->containsBoulder(i, protesterY) || getWorld()->containsIce(i, protesterY)) {
+                    walkableToIcemanInX = false;
+                    break;
+                }
+            }
+
+            // If path is clear, move toward Iceman along X direction 
+            if (walkableToIcemanInX) {
+                moveToPlayer(); // move in X direction
+                setNumSquaresToMoveInCurrentDirection(0);
+                return;
+            }
+        }
+
+        // Case 2: Iceman and protester are in the same column 
+        if (protesterX == icemanX) {
+            // Determine direction to iterate: +1 if Iceman is below, -1 if above
+            int signumY = (icemanY > protesterY) - (icemanY < protesterY);
+
+            // Check each tile between protester and Iceman for obstructions
+            for (int j = protesterY + signumY; j != icemanY; j += signumY) {
+                // If a boulder or ice is in the way, path is not walkable
+                if (getWorld()->containsBoulder(protesterX, j) || getWorld()->containsIce(protesterX, j)) {
+                    walkableToIcemanInY = false;
+                    break;
+                }
+            }
+
+            // If path is clear, move toward Iceman along Y direction 
+            if (walkableToIcemanInY) {
+                moveToPlayer(); // move in Y direction
+                setNumSquaresToMoveInCurrentDirection(0);
+                return;
+            }
+        }
+    }
+    else {
+
+        // IF PROTESTER CANT DIRECTLY SEE ICEMAN (STEP SIX)
+
+        decrementNumSquaresToMoveInCurrentDirection();
+
+        if (getNumSquaresToMoveInCurrentDirection() <= 0) {
+            // choose a new random direction
+            pickRandomValidDirection();
+            // choose new random stepcount from [8,60]
+            int steps = 8 + rand() % (60 - 8 + 1);
+            setNumSquaresToMoveInCurrentDirection(steps);
+        }
+    }
+
+    // The Regular Protester hasn’t made a perpendicular turn in the last 200 nonresting ticks
+    if (getNonRestingTicksSincePerpendicularMove() > 200) {
+        
+        MoveDirection currentDirection = getCurrentDirection();
+        bool facingHorizontally = (currentDirection == moveLeft || currentDirection == moveRight);
+        bool facingVertically = (currentDirection == moveUp || currentDirection == moveDown);
+        std::vector<MoveDirection> perpendicularOptions;
+
+        if (facingHorizontally) {
+            if (canMoveInDirection(moveUp)) perpendicularOptions.push_back(moveUp);
+            if (canMoveInDirection(moveDown)) perpendicularOptions.push_back(moveDown);
+        } else if (facingVertically) {
+            if (canMoveInDirection(moveLeft)) perpendicularOptions.push_back(moveLeft);
+            if (canMoveInDirection(moveRight)) perpendicularOptions.push_back(moveRight);
+        }
+
+        if (!perpendicularOptions.empty()) {
+            // Choose randomly among available perpendicular directions
+            int randomIndex = rand() % perpendicularOptions.size();
+            MoveDirection currentDirection = perpendicularOptions[randomIndex];
+
+            // Set new direction 
+            setCurrentDirection(currentDirection);
+
+            int newSteps = 8 + rand() % (60 - 8 + 1);
+            setNumSquaresToMoveInCurrentDirection(newSteps);
+
+            resetNonRestingTicksSincePerpendicularMove();
+        }
+    }
+
+    if (canMoveInDirection(getCurrentDirection())) move(getCurrentDirection());
+    else setNumSquaresToMoveInCurrentDirection(0);
 
 }
 
