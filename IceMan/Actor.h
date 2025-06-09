@@ -69,6 +69,10 @@ public:
     void pickGold() {m_gold++;}
     // decrement gold count
     void dropGold() {m_gold--;}
+    // recharge water gun from water pool
+    void pickPool() {m_water += 5;}
+    // add sonar count when picking up a sonar 
+    void pickSonar() {m_sonar++;}
     // getter functions for player state
     size_t getWater() const {return m_water;}
     size_t getGold() const {return m_gold;}
@@ -230,7 +234,7 @@ private:
 // Represents water you can pickup -- the source of water refills
 class Pool : public Goodies {
 public:
-    Pool(int x, int y, StudentWorld* world) : Goodies(IID_WATER_POOL, x, y, right, 1, 3, world) {}
+    Pool(int x, int y, StudentWorld* world) : Goodies(IID_WATER_POOL, x, y, right, 1, 3, world) {setVisible(true);}
     ~Pool() {}
     void doSomething() override;
 
@@ -253,7 +257,9 @@ private:
 // Represents the sonar kit
 class Sonar : public Goodies {
 public:
-    Sonar(StudentWorld* world) : Goodies(IID_SONAR, 0, 60, right, 1, 2, world) {}
+    Sonar(StudentWorld* world) : Goodies(IID_SONAR, 0, 60, right, 1, 2, world) {
+        setVisible(true);
+    }
     ~Sonar() {}
     void doSomething() override;
 
@@ -263,7 +269,6 @@ private:
 
 // --- Gold Class Implementation ---
 // Represents gold nuggets you can pickup
-// TODO: Need to make dropped gold be temporary instead of permanent
 class Gold : public Goodies {
 public:
     Gold(int x, int y, StudentWorld* world) : Goodies(IID_GOLD, x, y, right, 1, 2, world) {}

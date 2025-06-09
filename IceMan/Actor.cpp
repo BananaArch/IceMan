@@ -66,8 +66,8 @@ void Iceman::doSomething() {
         case 'z': // TODO: implement sonar logic
         case 'Z':
             break;
-        case KEY_PRESS_TAB: // TODO: Implement gold logic
-            if (getGold() == 0) 
+        case KEY_PRESS_TAB: // drop gold
+            if (getGold() == 0)
                 return;
             getWorld()->addGold(getX(), getY());
             dropGold();
@@ -588,5 +588,35 @@ void Gold::doSomething() {
                 break;
             }
         }
+    }
+}
+
+void Pool::doSomething() {
+    int x = getWorld()->getIceman()->getX();
+    int y = getWorld()->getIceman()->getY();
+
+    int dist_x = getX() - x, dist_y = getY() - y;
+    // when player is close enough, pick up water pool
+    if ((dist_x * dist_x + dist_y * dist_y) <= 9) {
+        setVisible(false);
+        getWorld()->playSound(SOUND_GOT_GOODIE);
+        getWorld()->increaseScore(100);
+        getWorld()->getIceman()->pickPool();
+        unalive();
+    }
+}
+
+void Sonar::doSomething() {
+    int x = getWorld()->getIceman()->getX();
+    int y = getWorld()->getIceman()->getY();
+
+    int dist_x = getX() - x, dist_y = getY() - y;
+    // when player is close enough, pick up water pool
+    if ((dist_x * dist_x + dist_y * dist_y) <= 9) {
+        setVisible(false);
+        getWorld()->playSound(SOUND_GOT_GOODIE);
+        getWorld()->increaseScore(75);
+        getWorld()->getIceman()->pickSonar();
+        unalive();
     }
 }

@@ -105,7 +105,7 @@ void StudentWorld::setBoulder() {
         int x , y;
         // reposition if position is invalid
         do {
-            x = 10 - (i*2); // rand() % 61;
+            x = std::rand() % 61;
             y = std::rand() % 61;
         } while ((x<0 || x>60) || (y<20 || y>56) || (x > 26 && x < 37)
                  || checkObjectDist(x, y));
@@ -332,4 +332,60 @@ void StudentWorld::createProtester() {
     pList.push_back(protester);
     dsList.push_back(protester);
 
+}
+
+void StudentWorld::addTools() {
+    // decide whether adding a tool on the field or not
+    bool adding = false;
+    int chance = getLevel() * 30 + 290;
+    if (std::rand() % chance == 69) {
+        adding = true;
+    }
+    // decide between adding water pool or sonar kit
+    if (adding) {
+        if (std::rand() % 5 > 0) {
+            addPool();
+        }
+        else {
+            addSonar();
+        }
+    }
+}
+
+void StudentWorld::addPool() {
+    int x , y;
+    bool isIce;
+
+    // look for a position that has no ice and spawn pool
+    do {
+        isIce = false;
+        x = std::rand() % 61;
+        y = std::rand() % 61;
+        
+        for (int i = x; i <= x+3; i++) {
+            for (int j = y; j <= y+3; j++) {
+                if (ices[i][j]) {
+                    isIce = true;
+                }
+            }
+        }
+        // to avoid overlapping with sonar
+        if (x==0 && y==60)
+            isIce = true;
+    } while(isIce);
+    // adding pool to the game
+    auto newPool = make_shared<Pool>(x, y, this);
+    setField(x, y, newPool);
+    dsList.emplace_back(newPool);
+    tList.emplace_back(newPool);
+}
+
+void StudentWorld::addSonar() {
+    // start at x=0, y=60
+    if (!field[0][60]) {
+        auto newSonar = make_shared<Sonar>(this);
+        setField(0, 60, newSonar);
+        dsList.emplace_back(newSonar);
+        tList.emplace_back(newSonar);
+    }
 }

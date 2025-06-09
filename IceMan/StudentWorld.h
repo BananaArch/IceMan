@@ -53,7 +53,7 @@ public:
             return GWSTATUS_FINISHED_LEVEL;
         }
         setStats();
-
+        addTools();
         // clean up any dead boulders
         for (auto it = bList.begin(); it != bList.end(); ) {
             if ((*it)->isAlive()) ++it;
@@ -76,6 +76,12 @@ public:
         for (auto it = dsList.begin(); it != dsList.end(); ) {
             if ((*it)->isAlive()) ++it;
             else it = dsList.erase(it);
+        }
+        
+        // clean up any dead actors in tList
+        for (auto it = tList.begin(); it != tList.end(); ) {
+            if ((*it)->isAlive()) ++it;
+            else it = tList.erase(it);
         }
         
         // clean up the field, kinda slow, might fix later
@@ -301,6 +307,8 @@ private:
     std::vector<std::shared_ptr<OilBarrel>> oList;
     // vector to keep track all gold nuggets
     std::vector<std::shared_ptr<Gold>> gList;
+    // vector to keep track all tools (Pool and Sonar)
+    std::vector<std::shared_ptr<Goodies>> tList;
     // auxilery function for init(), see StudentWorld.cpp
     void startWorld();
     // Display game stats
@@ -321,5 +329,9 @@ private:
     // generate player map for pathfinding
     void generatePlayerMap();
 
+    // adding water pools and sonar kit
+    void addTools();
+    void addPool();
+    void addSonar();
 };
 #endif // STUDENTWORLD_H_
