@@ -300,6 +300,7 @@ void StudentWorld::createProtester() {
     // max protesters on field
     int P = (2 + getLevel() * 1.5 > 15) ? 15 : 2 + getLevel() * 1.5; // min(15, 2 + current_level_number * 1.5)
     if (m_tickCount - m_lastProtesterCreated < T && pList.size() > 0 || pList.size() >= P) return;
+    int M = 16 + getLevel() * 2;
 
     // update last created tick
     m_lastProtesterCreated = m_tickCount;
@@ -313,7 +314,7 @@ void StudentWorld::createProtester() {
     std::shared_ptr<Protester> protester;
 
     if (randVal <= hardcoreProb) {
-        protester = std::make_shared<HardcoreProtester>(this);
+        protester = std::make_shared<HardcoreProtester>(this, M);
     }
     else {
         protester = std::make_shared<RegularProtester>(this);

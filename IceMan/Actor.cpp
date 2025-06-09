@@ -189,186 +189,46 @@ void Protester::pickRandomValidDirection() {
     }
 }
 
-
-void RegularProtester::doSomething() {
-    if (!isAlive()) return;
-
-    if (getStunTicks() >= 0) {
-        decrementStunTicks();
-        return;
+bool Protester::isFacingIceman(int icemanX, int icemanY) const {
+    Direction direction = getDirection();
+    switch (direction) {
+    case right:
+        return icemanX > getX() && abs(icemanY - getY()) < 4; // if iceman is to the right of the protester AND they're on same height
+    case left:
+        return icemanX < getX() && abs(icemanY - getY()) < 4; // if iceman is to the left of the protester AND they're on same height
+    case up:
+        return icemanY > getY() && abs(icemanX - getX()) < 4; // if iceman is to the above of the protester AND they're on same column
+    case down:
+        return icemanY < getY() && abs(icemanX - getX()) < 4; // if iceman is to the below of the protester AND they're on same column
+    default:
+        return false;
     }
-    
-    // checks if it is a rest tick
-    if (isARestTick()) {
-        return;
-    }
+}
 
-    // increment nonRestingTicksSinceLastAnnoyingPlayer since this is not a resting tick.
-    // if the protester DOES annoy a player this tick, then we reset it later
-
-    incrementNonRestingTicksSinceAnnoyingPlayer();
-
-    // increment nngTicksSincePerpendicularMove since this is not a resting tick.
-    // if the protester DOES move perpendicularly during this tick, then we reset it later
-
-    incrementNonRestingTicksSincePerpendicularMove();
-
-    // check if hp is zero or less, if so then it leaves field
-    if (!getIsLeaving() && getHp() <= 0) {
-        setIsLeaving(true);
-        setTicksToWaitBetweenMoves(0);
-    }
-
-    // if it's in the leaving field state
-    if (getIsLeaving()) {
-        // if it's at the exit point
-        if (getX() == 60 && getY() == 60) {
-            unalive();
-            return;
-        }
-        moveToLeaveLocation();
-        return;
-    }
-
-    int icemanX = getWorld()->getIceman()->getX();
-    int icemanY = getWorld()->getIceman()->getY();
+double Protester::getEuclidianDistanceTo(int x, int y) const {
     int protesterX = getX();
     int protesterY = getY();
 
-    int dx = protesterX - icemanX;
-    int dy = protesterY - icemanY;
-    double distanceToIceman = sqrt(dx * dx + dy * dy);
-
-    // Annoy Mechanism -- STEP FOUR
-    
-    // if protester hasn't shoulted within its last non-resting 15 ticks
-    // AND they are within distance of 4 units of Iceman
-    // AND is facing iceman
-
-    if (getNonRestingTicksSinceAnnoyingPlayer() > 15 && distanceToIceman <= 4.0 && isFacingIceman(icemanX, icemanY)) {
-        getWorld()->playSound(SOUND_PROTESTER_YELL);
-        getWorld()->getIceman()->decreaseHp(2);
-        resetNonRestingTicksSinceAnnoyingPlayer();
-        return;
-    }
-
-    // Walking to player mechanism (if direct line of sight) -- STEP FIVE
-
-    // If Iceman is in a straight horizontal or vertical line of sight to the protester
-    // (even if the protester isn't facing Iceman)
-    // AND if the protester is more than 4 units away from Iceman
-    if ((protesterX == icemanX || protesterY == icemanY) && distanceToIceman > 4) {
-
-        // Booleans to track whether a clear path exists to Iceman along X or Y axis
-        bool walkableToIcemanInX = true;
-        bool walkableToIcemanInY = true;
-
-        // Case 1: Iceman and protester are in the same row 
-        if (protesterY == icemanY) {
-            // Determine direction to iterate: +1 if Iceman is to the right, -1 if to the left
-            int signumX = (icemanX > protesterX) - (icemanX < protesterX);
-
-            // Check each tile between protester and Iceman for obstructions
-            for (int i = protesterX + signumX; i != icemanX; i += signumX) {
-                // If a boulder or ice is in the way, path is not walkable
-                if (getWorld()->containsBoulder(i, protesterY) || getWorld()->containsIce(i, protesterY)) {
-                    walkableToIcemanInX = false;
-                    break;
-                }
-            }
-
-            // If path is clear, move toward Iceman along X direction 
-            if (walkableToIcemanInX) {
-                moveToPlayer(); // move in X direction
-                setNumSquaresToMoveInCurrentDirection(0);
-                return;
-            }
-        }
-
-        // Case 2: Iceman and protester are in the same column 
-        if (protesterX == icemanX) {
-            // Determine direction to iterate: +1 if Iceman is below, -1 if above
-            int signumY = (icemanY > protesterY) - (icemanY < protesterY);
-
-            // Check each tile between protester and Iceman for obstructions
-            for (int j = protesterY + signumY; j != icemanY; j += signumY) {
-                // If a boulder or ice is in the way, path is not walkable
-                if (getWorld()->containsBoulder(protesterX, j) || getWorld()->containsIce(protesterX, j)) {
-                    walkableToIcemanInY = false;
-                    break;
-                }
-            }
-
-            // If path is clear, move toward Iceman along Y direction 
-            if (walkableToIcemanInY) {
-                moveToPlayer(); // move in Y direction
-                setNumSquaresToMoveInCurrentDirection(0);
-                return;
-            }
-        }
-    }
-    else {
-
-        // IF PROTESTER CANT DIRECTLY SEE ICEMAN (STEP SIX)
-
-        decrementNumSquaresToMoveInCurrentDirection();
-
-        if (getNumSquaresToMoveInCurrentDirection() <= 0) {
-            // choose a new random direction
-            pickRandomValidDirection();
-            // choose new random stepcount from [8,60]
-            int steps = 8 + rand() % (60 - 8 + 1);
-            setNumSquaresToMoveInCurrentDirection(steps);
-        }
-    }
-
-    // The Regular Protester hasn’t made a perpendicular turn in the last 200 nonresting ticks
-    if (getNonRestingTicksSincePerpendicularMove() > 200) {
-        
-        MoveDirection currentDirection = getCurrentDirection();
-        bool facingHorizontally = (currentDirection == moveLeft || currentDirection == moveRight);
-        bool facingVertically = (currentDirection == moveUp || currentDirection == moveDown);
-        std::vector<MoveDirection> perpendicularOptions;
-
-        if (facingHorizontally) {
-            if (canMoveInDirection(moveUp)) perpendicularOptions.push_back(moveUp);
-            if (canMoveInDirection(moveDown)) perpendicularOptions.push_back(moveDown);
-        } else if (facingVertically) {
-            if (canMoveInDirection(moveLeft)) perpendicularOptions.push_back(moveLeft);
-            if (canMoveInDirection(moveRight)) perpendicularOptions.push_back(moveRight);
-        }
-
-        if (!perpendicularOptions.empty()) {
-            // Choose randomly among available perpendicular directions
-            int randomIndex = rand() % perpendicularOptions.size();
-            MoveDirection currentDirection = perpendicularOptions[randomIndex];
-
-            // Set new direction 
-            setCurrentDirection(currentDirection);
-
-            int newSteps = 8 + rand() % (60 - 8 + 1);
-            setNumSquaresToMoveInCurrentDirection(newSteps);
-
-            resetNonRestingTicksSincePerpendicularMove();
-        }
-    }
-
-    if (canMoveInDirection(getCurrentDirection())) move(getCurrentDirection());
-    else setNumSquaresToMoveInCurrentDirection(0);
-
+    int dx = protesterX - x;
+    int dy = protesterY - y;
+    return sqrt(dx * dx + dy * dy);
 }
 
-void HardcoreProtester::doSomething() {
-    if (!isAlive()) return;
+// helper function for doSomething shared by both regular and hardcore protester
+// returns whether or not it should exit main doSomething() function
+// handles preaction things such as, checking ifalive, dealing with rest and stun ticks, moving to leave location if leaving 
+bool Protester::doSomethingPreAction() {
+
+    if (!isAlive()) return true;
 
     if (getStunTicks() >= 0) {
         decrementStunTicks();
-        return;
+        return true;
     }
 
     // checks if it is a rest tick
     if (isARestTick()) {
-        return;
+        return true; // exit if it is
     }
 
     // increment nonRestingTicksSinceLastAnnoyingPlayer since this is not a resting tick.
@@ -392,106 +252,111 @@ void HardcoreProtester::doSomething() {
         // if it's at the exit point
         if (getX() == 60 && getY() == 60) {
             unalive();
-            return;
+            return true;
         }
         moveToLeaveLocation();
-        return;
+        return true;
+    }
+    return false;
+}
+
+// helper function for doSomething shared by both regular and hardcore protester
+// returns whether or not it should exit main doSomething() function
+// handles trying to damage the player if it gets within 4 units, and is facing iceman, and hasn't annoyed iceman in past 15 nonresting ticks
+bool Protester::tryToAnnoyPlayer() {
+    
+    int icemanX = getWorld()->getIceman()->getX();
+    int icemanY = getWorld()->getIceman()->getY();
+    
+    double distanceToIceman = getEuclidianDistanceTo(icemanX, icemanY);
+
+    // if protester hasn't shoulted within its last non-resting 15 ticks
+    // AND they are within distance of 4 units of Iceman
+    // AND is facing iceman
+    if (getNonRestingTicksSinceAnnoyingPlayer() > 15 && distanceToIceman <= 4.0 && isFacingIceman(icemanX, icemanY)) {
+        getWorld()->playSound(SOUND_PROTESTER_YELL);
+        getWorld()->getIceman()->decreaseHp(2);
+        resetNonRestingTicksSinceAnnoyingPlayer();
+        return true;
     }
 
+    return false;
+}
+
+// helper function for doSomething shared by both regular and hardcore protester
+// returns whether or not it should exit main doSomething() function
+// handles trying to walk to player if protester is in direct line of sight
+bool Protester::tryDirectLineMoveToPlayer() {
+    
     int icemanX = getWorld()->getIceman()->getX();
     int icemanY = getWorld()->getIceman()->getY();
     int protesterX = getX();
     int protesterY = getY();
 
-    int dx = protesterX - icemanX;
-    int dy = protesterY - icemanY;
-    double distanceToIceman = sqrt(dx * dx + dy * dy);
+    double euclidianDistanceToIceman = getEuclidianDistanceTo(icemanX, icemanY);
 
-    // Annoy Mechanism -- STEP FOUR
+    // If Iceman is in a straight horizontal or vertical line of sight to the protester
+    // (even if the protester isn't facing Iceman)
+    // AND if the protester is more than 4 units away from Iceman
 
-    // if protester hasn't shoulted within its last non-resting 15 ticks
-    // AND they are within distance of 4 units of Iceman
-    // AND is facing iceman
+    if ((protesterX == icemanX || protesterY == icemanY) && euclidianDistanceToIceman > 4.0) {
 
-    if (getNonRestingTicksSinceAnnoyingPlayer() > 15 && distanceToIceman <= 4.0 && isFacingIceman(icemanX, icemanY)) {
-        getWorld()->playSound(SOUND_PROTESTER_YELL);
-        getWorld()->getIceman()->decreaseHp(2);
-        resetNonRestingTicksSinceAnnoyingPlayer();
-        return;
+        // Booleans to track whether a clear path exists to Iceman along X or Y axis
+        bool walkableToIcemanInX = true;
+        bool walkableToIcemanInY = true;
+
+        // Case 1: Iceman and protester are in the same row 
+        if (protesterY == icemanY) {
+            // Determine direction to iterate: +1 if Iceman is to the right, -1 if to the left
+            int signumX = (icemanX > protesterX) - (icemanX < protesterX);
+
+            // Check each tile between protester and Iceman for obstructions
+            for (int i = protesterX + signumX; i != icemanX; i += signumX) {
+                // If a boulder or ice is in the way, path is not walkable
+                if (getWorld()->containsBoulder(i, protesterY) || getWorld()->containsIce(i, protesterY)) {
+                    walkableToIcemanInX = false;
+                    break;
+                }
+            }
+
+            // If path is clear, move toward Iceman along X direction 
+            if (walkableToIcemanInX) {
+                moveToPlayer(); // move in X direction
+                setNumSquaresToMoveInCurrentDirection(0);
+                return true;
+            }
+        }
+
+        // Case 2: Iceman and protester are in the same column 
+        if (protesterX == icemanX) {
+            // Determine direction to iterate: +1 if Iceman is below, -1 if above
+            int signumY = (icemanY > protesterY) - (icemanY < protesterY);
+
+            // Check each tile between protester and Iceman for obstructions
+            for (int j = protesterY + signumY; j != icemanY; j += signumY) {
+                // If a boulder or ice is in the way, path is not walkable
+                if (getWorld()->containsBoulder(protesterX, j) || getWorld()->containsIce(protesterX, j)) {
+                    walkableToIcemanInY = false;
+                    break;
+                }
+            }
+
+            // If path is clear, move toward Iceman along Y direction 
+            if (walkableToIcemanInY) {
+                moveToPlayer(); // move in Y direction
+                setNumSquaresToMoveInCurrentDirection(0);
+                return true;
+            }
+        }
     }
 
-    // Walking to player mechanism 
+    return false;
+}
 
-    // If the protester is more than 4 units away from Iceman
-    if (distanceToIceman > 4) {
-
-        // check to see if M units away from iceman where
-        int M = 16 + getWorld()->getLevel() * 2;
-
-        int distanceToPlayer = getWorld()->getDistanceToPlayer(protesterX, protesterY);
-
-        cout << distanceToPlayer << endl;
-
-        if (distanceToPlayer <= M) {
-            moveToPlayer();
-            return;
-        }
-
-        // check to see if direct line of sight (even if protester isn't facing Iceman)
-        if (protesterX == icemanX || protesterY == icemanY) {
-            // Booleans to track whether a clear path exists to Iceman along X or Y axis
-            bool walkableToIcemanInX = true;
-            bool walkableToIcemanInY = true;
-
-            // Case 1: Iceman and protester are in the same row 
-            if (protesterY == icemanY) {
-                // Determine direction to iterate: +1 if Iceman is to the right, -1 if to the left
-                int signumX = (icemanX > protesterX) - (icemanX < protesterX);
-
-                // Check each tile between protester and Iceman for obstructions
-                for (int i = protesterX + signumX; i != icemanX; i += signumX) {
-                    // If a boulder or ice is in the way, path is not walkable
-                    if (getWorld()->containsBoulder(i, protesterY) || getWorld()->containsIce(i, protesterY)) {
-                        walkableToIcemanInX = false;
-                        break;
-                    }
-                }
-
-                // If path is clear, move toward Iceman along X direction 
-                if (walkableToIcemanInX) {
-                    moveToPlayer(); // move in X direction
-                    setNumSquaresToMoveInCurrentDirection(0);
-                    return;
-                }
-            }
-
-            // Case 2: Iceman and protester are in the same column 
-            if (protesterX == icemanX) {
-                // Determine direction to iterate: +1 if Iceman is below, -1 if above
-                int signumY = (icemanY > protesterY) - (icemanY < protesterY);
-
-                // Check each tile between protester and Iceman for obstructions
-                for (int j = protesterY + signumY; j != icemanY; j += signumY) {
-                    // If a boulder or ice is in the way, path is not walkable
-                    if (getWorld()->containsBoulder(protesterX, j) || getWorld()->containsIce(protesterX, j)) {
-                        walkableToIcemanInY = false;
-                        break;
-                    }
-                }
-
-                // If path is clear, move toward Iceman along Y direction 
-                if (walkableToIcemanInY) {
-                    moveToPlayer(); // move in Y direction
-                    setNumSquaresToMoveInCurrentDirection(0);
-                    return;
-                }
-            }
-        }
-        
-    } 
-
-    // IF PROTESTER CANT DIRECTLY SEE ICEMAN (STEP SIX)
-
+// helper function for doSomething shared by both regular and hardcore protester
+// handles logic for randomly moving and randomly switching directions
+// also handles logic for intersections
+void Protester::randomlyMove() {
     decrementNumSquaresToMoveInCurrentDirection();
 
     if (getNumSquaresToMoveInCurrentDirection() <= 0) {
@@ -536,6 +401,46 @@ void HardcoreProtester::doSomething() {
 
     if (canMoveInDirection(getCurrentDirection())) move(getCurrentDirection());
     else setNumSquaresToMoveInCurrentDirection(0);
+}
+
+// helper function for doSomething for the hardcore protester
+// returns whether or not it should exit main doSomething() function
+// handles tracking cellphone and using BFS algorithm to track and move through shortest path to iceman
+bool HardcoreProtester::tryToTrackPhone() {
+
+    int icemanX = getWorld()->getIceman()->getX();
+    int icemanY = getWorld()->getIceman()->getY();
+
+    double euclidianDistanceToIceman = getEuclidianDistanceTo(icemanX, icemanY);
+
+    if (euclidianDistanceToIceman > 4.0) {
+        // this is different then euclidian distance, since it uses pathfinding to find shortest distance
+        int shortestDistanceFromPlayer = getWorld()->getShortestDistanceToPlayer(getX(), getY());
+        if (shortestDistanceFromPlayer < m_M) {
+            moveToPlayer();
+            return true;
+        }
+    }
+    
+    return false;
+}
+
+void RegularProtester::doSomething() {
+
+    if (doSomethingPreAction()) return;
+    if (tryToAnnoyPlayer()) return;
+    if (tryDirectLineMoveToPlayer()) return;
+    randomlyMove();
+
+}
+
+void HardcoreProtester::doSomething() {
+    
+    if (doSomethingPreAction()) return;
+    if (tryToAnnoyPlayer()) return;
+    if (tryToTrackPhone()) return;
+    if (tryDirectLineMoveToPlayer()) return;
+    randomlyMove();
 
 }
 

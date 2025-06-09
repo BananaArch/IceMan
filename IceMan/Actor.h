@@ -110,21 +110,12 @@ public:
     bool canMoveTo(int x, int y);
     bool canMoveInDirection(MoveDirection dir);
     // function that returns if the protester has direct line of sight of the iceman
-    bool isFacingIceman(int icemanX, int icemanY) const { 
-        Direction direction = getDirection();
-        switch (direction) {
-        case right:
-            return icemanX > getX() && abs(icemanY - getY()) < 4; // if iceman is to the right of the protester AND they're on same height
-        case left:
-            return icemanX < getX() && abs(icemanY - getY()) < 4; // if iceman is to the left of the protester AND they're on same height
-        case up:
-            return icemanY > getY() && abs(icemanX - getX()) < 4; // if iceman is to the above of the protester AND they're on same column
-        case down:
-            return icemanY < getY() && abs(icemanX - getX()) < 4; // if iceman is to the below of the protester AND they're on same column
-        default:
-            return false;
-        }
-    }
+    bool isFacingIceman(int icemanX, int icemanY) const;
+    double getEuclidianDistanceTo(int x, int y) const;
+    bool doSomethingPreAction();
+    bool tryToAnnoyPlayer();
+    bool tryDirectLineMoveToPlayer();
+    void randomlyMove();
 private:
     int m_stunTicks;
     int m_numSquaresToMoveInCurrentDirections;
@@ -150,11 +141,13 @@ private:
 // Represents the harcore Protesters
 class HardcoreProtester : public Protester {
 public:
-    HardcoreProtester(StudentWorld* world) : Protester(IID_HARD_CORE_PROTESTER, 60, 60, world, 20) {}
+    HardcoreProtester(StudentWorld* world, int M) : Protester(IID_HARD_CORE_PROTESTER, 60, 60, world, 20), m_M(M) {}
     ~HardcoreProtester() {}
     void doSomething() override;
+    bool tryToTrackPhone();
 private:
-
+    // the max distance away a hardcore protester can track iceman's phone
+    int m_M;
 };
 
 

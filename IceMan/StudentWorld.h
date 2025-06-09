@@ -253,7 +253,7 @@ public:
         return bestDir;
     }
 
-    int getDistanceToPlayer(int x, int y) {
+    int getShortestDistanceToPlayer(int x, int y) {
         return playerMap[x][y];
     }
     
