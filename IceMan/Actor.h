@@ -7,7 +7,6 @@
 #include "SpriteManager.h"
 
 #include<cstdlib>
-
 enum MoveDirection { moveNone, moveUp, moveRight, moveLeft, moveDown };
 
 class StudentWorld;
@@ -222,11 +221,14 @@ public:
     Goodies(int imageId, int x, int y, Direction dir, double size, unsigned int depth, StudentWorld* world) : Actor(imageId, x, y, dir, size, depth, world) {}
     virtual ~Goodies() {}
     virtual void doSomething() = 0;
+    void setMaxLife(size_t t) {maxLifeTime = t;}
 protected:
     size_t getTimer() { return life_timer;}
     void incTimer() {life_timer++;}
+    size_t getMaxLife() {return maxLifeTime;}
 private:
     size_t life_timer = 0;
+    size_t maxLifeTime;
 };
 
 

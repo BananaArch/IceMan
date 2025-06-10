@@ -562,10 +562,11 @@ void Gold::doSomething() {
     // if golden nugget is picked and then placed by player
     else {
         // Dropped gold can only survive for 100 ticks
-        if (getTimer() >= 100) {
+        if (getTimer() >= getMaxLife()) {
             setVisible(false);
             unalive();
         }
+        // increase life timer
         incTimer();
         // check if it's picked up by a protester
         std::vector<std::shared_ptr<Protester>> pList;
@@ -592,9 +593,16 @@ void Gold::doSomething() {
 }
 
 void Pool::doSomething() {
+    // unalive when reaching max life-time
+    if (getTimer() >= getMaxLife()) {
+        unalive();
+        return;
+    }
+    // increase life timer
+    incTimer();
+    // look for iceman position
     int x = getWorld()->getIceman()->getX();
     int y = getWorld()->getIceman()->getY();
-
     int dist_x = getX() - x, dist_y = getY() - y;
     // when player is close enough, pick up water pool
     if ((dist_x * dist_x + dist_y * dist_y) <= 9) {
@@ -607,6 +615,14 @@ void Pool::doSomething() {
 }
 
 void Sonar::doSomething() {
+    // unalive when reaching max life-time
+    if (getTimer() >= getMaxLife()) {
+        unalive();
+        return;
+    }
+    // increase life timer
+    incTimer();
+    // look for iceman position
     int x = getWorld()->getIceman()->getX();
     int y = getWorld()->getIceman()->getY();
 

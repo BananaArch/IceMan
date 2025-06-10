@@ -161,6 +161,7 @@ void StudentWorld::setGold() {
 }
 void StudentWorld::addGold(int x, int y) {
     auto newGold = make_shared<Gold>(x, y, this);
+    newGold->setMaxLife(100);
     newGold->pickable(true);
     setField(x, y, newGold);
     dsList.emplace_back(newGold);
@@ -375,6 +376,8 @@ void StudentWorld::addPool() {
     } while(isIce);
     // adding pool to the game
     auto newPool = make_shared<Pool>(x, y, this);
+    int m = 300 - 10*getLevel();
+    newPool->setMaxLife(max(100, m));
     setField(x, y, newPool);
     dsList.emplace_back(newPool);
     tList.emplace_back(newPool);
@@ -384,6 +387,8 @@ void StudentWorld::addSonar() {
     // start at x=0, y=60
     if (!field[0][60]) {
         auto newSonar = make_shared<Sonar>(this);
+        int m = 300 - 10*getLevel();
+        newSonar->setMaxLife(max(100, m));
         setField(0, 60, newSonar);
         dsList.emplace_back(newSonar);
         tList.emplace_back(newSonar);

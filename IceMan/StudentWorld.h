@@ -144,6 +144,7 @@ public:
         bList.clear();
         oList.clear();
         gList.clear();
+        tList.clear();
     }
     // getter function for elements in field
     void getField(int x, int y, std::shared_ptr<Actor>& pos) const {
