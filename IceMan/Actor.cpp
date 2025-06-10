@@ -63,8 +63,17 @@ void Iceman::doSomething() {
             // TODO: implement water squirt logic
         case KEY_PRESS_SPACE: // page 28 part b
             break;
-        case 'z': // TODO: implement sonar logic
+        case 'z': 
+            if (getWorld()->getIceman()->getSonar() > 0) {
+                getWorld()->getIceman()->useSonar();
+                getWorld()->sonarScan();
+            }
+            break;
         case 'Z':
+            if (getWorld()->getIceman()->getSonar() > 0) {
+                getWorld()->getIceman()->useSonar();
+                getWorld()->sonarScan();
+            }
             break;
         case KEY_PRESS_TAB: // drop gold
             if (getGold() == 0)

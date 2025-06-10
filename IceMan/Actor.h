@@ -72,6 +72,8 @@ public:
     void pickPool() {m_water += 5;}
     // add sonar count when picking up a sonar 
     void pickSonar() {m_sonar++;}
+    // decrease sonar count when using a sonar
+    void useSonar() {m_sonar--;}
     // getter functions for player state
     size_t getWater() const {return m_water;}
     size_t getGold() const {return m_gold;}

@@ -274,7 +274,7 @@ public:
     }
     
     unsigned long getTickCount() { return m_tickCount; }
-
+    void sonarScan();
 private:
 
     unsigned long m_tickCount = 0;

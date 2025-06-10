@@ -394,3 +394,14 @@ void StudentWorld::addSonar() {
         tList.emplace_back(newSonar);
     }
 }
+
+void StudentWorld::sonarScan() {
+    int x = m_player->getX();
+    int y = m_player->getY();
+    for (auto object: dsList) {
+        int distX = x - object->getX();
+        int distY = y - object->getY();
+        if ((distX*distX + distY*distY) <= 144)
+            object->setVisible(true);
+    }
+}
