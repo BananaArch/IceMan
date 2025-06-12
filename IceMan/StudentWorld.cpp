@@ -5,18 +5,16 @@
 #include <queue>
 #include <cstdlib>
 #include <future>
-
+#include <mutex>
 using namespace std;
 
 GameWorld* createStudentWorld(string assetDir)
 {
     return new StudentWorld(assetDir);
 }
-
+// create a mutex to avoid race condition
+mutex setObjectLock;
 void StudentWorld::startWorld() {
-    // intialize 2d array that keep track of all actors
-    field.resize(64, std::vector<std::shared_ptr<Actor>>(64, nullptr));
-    
     // set up the ice objects on its own 2d ice array
     for (int x=0; x<64; x++) {
         for (int y=0; y<64; y++) {
@@ -28,31 +26,30 @@ void StudentWorld::startWorld() {
             }
         }
     }
-    // TODO: Race condition, might try to fix later
     // using multi threading to initialize game objects
-//    auto boulderFuture = std::async(std::launch::async, [this]() {
-//        this->setBoulder();
-//    });
-//    auto oilFuture = std::async(std::launch::async, [this]() {
-//        this->setOil();
-//    });
-//    auto goldFuture = std::async(std::launch::async, [this]() {
-//        this->setGold();
-//    });
+    auto boulderFuture = std::async(std::launch::async, [this]() {
+        this->setBoulder();
+    });
+    auto oilFuture = std::async(std::launch::async, [this]() {
+        this->setOil();
+    });
+    auto goldFuture = std::async(std::launch::async, [this]() {
+        this->setGold();
+    });
 
     // initialize tickCount
     m_tickCount = 0;
 
     // initialize the iceman
     m_player = std::make_shared<Iceman>(this);
+//    setBoulder();
+//    setOil();
+//    setGold();
+    boulderFuture.get();
+    oilFuture.get();
+    goldFuture.get();
+    unique_lock<mutex> lock(setObjectLock);
     dsList.emplace_back(m_player);
-    setBoulder();
-    setOil();
-    setGold();
-//    boulderFuture.get();
-//    oilFuture.get();
-//    goldFuture.get();
-
     // TODO: Use multithreading to generate maps
 
     generatePlayerMap();
@@ -97,6 +94,7 @@ void StudentWorld::setStats() {
 
     setGameStatText(stats);
 }
+
 // create boulders on field
 void StudentWorld::setBoulder() {
     int level = getLevel();
@@ -116,7 +114,7 @@ void StudentWorld::setBoulder() {
             }
         }
         auto newBoulder = make_shared<Boulder>(x, y, this);
-        setField(x, y, newBoulder);
+        unique_lock<mutex> lock(setObjectLock);
         dsList.emplace_back(newBoulder);
         bList.emplace_back(newBoulder);
     }
@@ -135,7 +133,7 @@ void StudentWorld::setOil() {
                  || checkObjectDist(x, y));
 
         auto newOil = make_shared<OilBarrel>(x, y, this);
-        setField(x, y, newOil);
+        unique_lock<mutex> lock(setObjectLock);
         dsList.emplace_back(newOil);
         oList.emplace_back(newOil);
     }
@@ -154,7 +152,7 @@ void StudentWorld::setGold() {
                  || checkObjectDist(x, y));
 
         auto newGold = make_shared<Gold>(x, y, this);
-        setField(x, y, newGold);
+        unique_lock<mutex> lock(setObjectLock);
         dsList.emplace_back(newGold);
         gList.emplace_back(newGold);
     }
@@ -163,7 +161,6 @@ void StudentWorld::addGold(int x, int y) {
     auto newGold = make_shared<Gold>(x, y, this);
     newGold->setMaxLife(100);
     newGold->pickable(true);
-    setField(x, y, newGold);
     dsList.emplace_back(newGold);
     gList.emplace_back(newGold);
     
@@ -175,21 +172,25 @@ bool StudentWorld::checkObjectDist(int x, int y) {
     if (x > 29 && x < 34 && y > 3)
         return true;
     
-    // Check if objects are 6 units away from each other
+    // Check if boulders, gold and oil barrels are 6 units away from each other
     int dist_x, dist_y;
-    for (int i = max(x-6, 0); i < min(x+6, 61); i++) {
-        for (int j = max(y-6, 0); j < min(y+6, 57); j++) {
-            // if objects are kind of close, check!
-            if (field[i][j] == nullptr) {
-                continue;
-            }
-            dist_x = field[i][j]->getX() - x;
-            dist_y = field[i][j]->getY() - y;
-            int distance = dist_x * dist_x + dist_y * dist_y;
-            if (distance < 36) {
-                return true;
-            }
-        }
+    for (auto oil: oList) {
+        dist_x = oil->getX() - x;
+        dist_y = oil->getY() - y;
+        int distance = dist_x * dist_x + dist_y * dist_y;
+        if (distance < 36) return true;
+    }
+    for (auto gold: gList) {
+        dist_x = gold->getX() - x;
+        dist_y = gold->getY() - y;
+        int distance = dist_x * dist_x + dist_y * dist_y;
+        if (distance < 36) return true;
+    }
+    for (auto bould: bList) {
+        dist_x = bould->getX() - x;
+        dist_y = bould->getY() - y;
+        int distance = dist_x * dist_x + dist_y * dist_y;
+        if (distance < 36) return true;
     }
     return false;
 
@@ -378,18 +379,20 @@ void StudentWorld::addPool() {
     auto newPool = make_shared<Pool>(x, y, this);
     int m = 300 - 10*getLevel();
     newPool->setMaxLife(max(100, m));
-    setField(x, y, newPool);
     dsList.emplace_back(newPool);
     tList.emplace_back(newPool);
 }
 
 void StudentWorld::addSonar() {
     // start at x=0, y=60
-    if (!field[0][60]) {
+    bool already = false;
+    for (auto tool: tList) {
+        if (tool->getX() == 0 && tool->getY() == 60) already = true;
+    }
+    if (!already) {
         auto newSonar = make_shared<Sonar>(this);
         int m = 300 - 10*getLevel();
         newSonar->setMaxLife(max(100, m));
-        setField(0, 60, newSonar);
         dsList.emplace_back(newSonar);
         tList.emplace_back(newSonar);
     }

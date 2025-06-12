@@ -523,7 +523,6 @@ void Boulder::doSomething() {
         }
         if (count == 4) {
             stable = false;
-            getWorld()->setField(getX(), getY(), nullptr);
         }
     }
 }

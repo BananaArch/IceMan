@@ -26,7 +26,6 @@ public:
             }
         }
         m_player = nullptr;
-        field.clear();
         dsList.clear();
         bList.clear();
     }
@@ -84,14 +83,6 @@ public:
             else it = tList.erase(it);
         }
         
-        // clean up the field, kinda slow, might fix later
-        for (int i = 0; i < 64; i++) {
-            for (int j = 0; j < 64; j++) {
-                if (field[i][j] != nullptr && !field[i][j]->isAlive())
-                    field[i][j] = nullptr;
-            }
-        }
-        
         // Launch new pathfinding tasks every 20 ticks
         if (m_tickCount % 20 == 0) {
 
@@ -138,7 +129,6 @@ public:
             }
         }
         m_player = nullptr;
-        field.clear();
         dsList.clear();
         pList.clear();
         bList.clear();
@@ -146,20 +136,7 @@ public:
         gList.clear();
         tList.clear();
     }
-    // getter function for elements in field
-    void getField(int x, int y, std::shared_ptr<Actor>& pos) const {
-        if (x>=0 && y>=0 && x<64 && y<64) {
-            pos = field[x][y];
-            return;
-        }
-        pos = nullptr;
-    }
-    // change element in the
-    void setField(int x, int y, std::shared_ptr<Actor> pos) {
-        if (x>=0 && y>=0 && x<64 && y<64) {
-            field[x][y] = pos;
-        }
-    }
+
     // getter function for m_player
     std::shared_ptr<Iceman> getIceman() {return m_player;}
     
@@ -286,8 +263,6 @@ private:
 
     // pointer of iceman/player
     std::shared_ptr<Iceman> m_player;
-    // main 2d array that keep tracks of all actors except iceman and ice
-    std::vector<std::vector<std::shared_ptr<Actor>>> field;
     // 2d array that initialize all the ice objects
     std::shared_ptr<Ice> ices[64][64];
     // 2d array for pathfinding to protester target
