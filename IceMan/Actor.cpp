@@ -60,8 +60,12 @@ void Iceman::doSomething() {
         case KEY_PRESS_ESCAPE:
             setHp(0);
             break;
-            // TODO: implement water squirt logic
-        case KEY_PRESS_SPACE: // page 28 part b
+        case KEY_PRESS_SPACE: 
+            if (m_water > 0) {
+                getWorld()->createSquirt(this);
+                useWater();
+            }
+                
             break;
         case 'z': 
             if (getWorld()->getIceman()->getSonar() > 0) {
@@ -147,7 +151,15 @@ void Iceman::decreaseHp(int dmg)  {
 Protester::Protester(int imageId, int x, int y, StudentWorld* world, int hp) : Person(imageId, x, y, left, 1.0, 0, world, hp), m_isLeavingField(false), m_nonRestingTickSinceAnnoyingPlayer(0), m_nonRestingTicksSincePerpendicularMove(0), m_currentDirection(moveNone), m_stunTicks(0) {
     m_numSquaresToMoveInCurrentDirections = 8 + (std::rand() % (60 - 8 + 1));
     m_ticksToWaitBetweenMoves = (0 > (3 - getWorld()->getLevel() / 4)) ? 0 : (3 - getWorld()->getLevel() / 4); // max using ternary operator
+    m_maxStun = (100 - getWorld()->getLevel() * 10 > 50 ? 100 - getWorld()->getLevel() * 10 : 50);
     setVisible(true);
+}
+
+void Protester::decreaseHp(int dmg) {
+    Person::decreaseHp(dmg);
+    if (getHp() > 0) {
+        getWorld()->playSound(SOUND_PROTESTER_ANNOYED);
+    }
 }
 
 int Protester::isARestTick() {
@@ -163,7 +175,7 @@ void Protester::moveToPlayer() {
 }
 
 bool Protester::canMoveTo(int x, int y) {
-    return x >= 0 && x < 64 && y >= 0 && y < 64 &&
+    return x >= 0 && x <= 61 && y >= 0 && y <= 61 &&
         !getWorld()->containsIce(x, y) &&
         !getWorld()->containsBoulder(x, y);
 }
@@ -256,6 +268,7 @@ bool Protester::doSomethingPreAction() {
 
     // check if hp is zero or less, if so then it leaves field
     if (!getIsLeaving() && getHp() <= 0) {
+        getWorld()->playSound(SOUND_PROTESTER_GIVE_UP);
         setIsLeaving(true);
         setTicksToWaitBetweenMoves(0);
     }
@@ -642,5 +655,77 @@ void Sonar::doSomething() {
         getWorld()->increaseScore(75);
         getWorld()->getIceman()->pickSonar();
         unalive();
+    }
+}
+
+bool Squirt::canMoveTo(int x, int y) {
+    return x >= 0 && x < 61 && y >= 0 && y < 61 &&
+        !getWorld()->containsIce(x, y) &&
+        !getWorld()->containsBoulder(x, y);
+}
+
+void Squirt::doSomething() {
+
+    if (!isAlive()) return;
+
+    // if there is a protester here, it will damage it and destroy itself and return
+    if (getWorld()->damageProtesters(getX(), getY())) {
+        unalive();
+        return;
+    }
+    
+    // if it has already travelled 4 units, it will destroy itself and return
+    if (m_distanceTravelled >= 4) {
+        unalive();
+        return;
+    }
+
+    int x = getX();
+    int y = getY();
+
+    switch (getDirection()) {
+    case up:
+        if (canMoveTo(x, y + 1)) { // if it can move
+            moveTo(x, y + 1); // it will move
+            m_distanceTravelled++;
+            return;
+        }
+        else { // otherwise it will destroy itself
+            unalive();
+            return;
+        }
+    case down:
+        if (canMoveTo(x, y - 1)) {
+            moveTo(x, y - 1);
+            m_distanceTravelled++;
+            return;
+        }
+        else {
+            unalive();
+            return;
+        }
+    case left:
+        if (canMoveTo(x - 1, y)) {
+            moveTo(x - 1, y);
+            m_distanceTravelled++;
+            return;
+        }
+        else {
+            unalive();
+            return;
+        }
+    case right:
+        if (canMoveTo(x + 1, y)) { 
+            moveTo(x + 1, y);
+            m_distanceTravelled++;
+            return;
+        }
+        else {
+            unalive();
+            return;
+        }
+    default: // in case something unexpected happens, it kills itself
+        unalive();
+        return;
     }
 }

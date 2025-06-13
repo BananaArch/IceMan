@@ -6,6 +6,7 @@
 #include <cstdlib>
 #include <future>
 #include <mutex>
+#include <memory>
 using namespace std;
 
 GameWorld* createStudentWorld(string assetDir)
@@ -407,4 +408,16 @@ void StudentWorld::sonarScan() {
         if ((distX*distX + distY*distY) <= 144)
             object->setVisible(true);
     }
+}
+
+// returns a vector with smart ptrs to all protesters at a specific position
+vector<shared_ptr<Protester>> StudentWorld::getOverlappingProtesters(int x, int y) {
+    std::vector<std::shared_ptr<Protester>> overlappingProtesters;
+    for (const auto& protester : pList) {
+        if (x + 4 > protester->getX() && x < protester->getX() + 4 &&
+            y + 4 > protester->getY() && y < protester->getY() + 4) {
+            overlappingProtesters.push_back(protester);
+        }
+    }
+    return overlappingProtesters;
 }

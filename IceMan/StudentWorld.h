@@ -189,6 +189,31 @@ public:
         copyList = pList;
     }
     
+    // see if prospective move by a 4x4 squirt is hitting a protester 
+    // returns list of protesters it hits
+    bool containsProtester(int x, int y) {
+        for (auto protester : pList) {
+            if (x + 4 > protester->getX() && x < protester->getX() + 4 &&
+                y + 4 > protester->getY() && y < protester->getY() + 4) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    // damage all protesters at a specific location
+    // if there are protesters at the location and it damages it, this will return true
+    // otherwise it will return false
+    bool damageProtesters(int x, int y) {
+        auto protesterListAtSpecifiedLocation = getOverlappingProtesters(x, y);
+        for (auto protester : protesterListAtSpecifiedLocation) {
+            protester->decreaseHp(2);
+            protester->setStunTicks();
+            return true;
+        }
+        return false;
+    }
+
     // returns the best direction to move when trying
     MoveDirection bestDirectionToReturn(int x, int y) {
         int bestVal = returnMap[x][y];
@@ -249,6 +274,14 @@ public:
     int getShortestDistanceToPlayer(int x, int y) {
         return playerMap[x][y];
     }
+
+    // Using a raw pointer is safe here because Iceman is guaranteed to be alive when this is called
+    // Using shared_ptr here could cause a circular dependency between Iceman and Squirt
+    // Only Squirt is stored in dsList via shared_ptr; Iceman is not owned or copied
+    void createSquirt(Iceman* iceman) { 
+        if (iceman == nullptr) return;
+        dsList.push_back(std::make_shared<Squirt>(iceman->getX(), iceman->getY(), iceman->getDirection(), this));
+    }
     
     unsigned long getTickCount() { return m_tickCount; }
     void sonarScan();
@@ -293,6 +326,7 @@ private:
     void setBoulder();
     // Creates protesters
     void createProtester();
+
     // check distance between objects to ensure they're not too close
     bool checkObjectDist(int x, int y);
     // Add oil to the game
@@ -309,5 +343,9 @@ private:
     void addTools();
     void addPool();
     void addSonar();
+
+    // logic for squirt hitting protesters
+
+    std::vector<std::shared_ptr<Protester>> getOverlappingProtesters(int x, int y);
 };
 #endif // STUDENTWORLD_H_

@@ -70,6 +70,8 @@ public:
     void dropGold() {m_gold--;}
     // recharge water gun from water pool
     void pickPool() {m_water += 5;}
+    // decrement water count when using water gun
+    void useWater() { m_water--; }
     // add sonar count when picking up a sonar 
     void pickSonar() {m_sonar++;}
     // decrease sonar count when using a sonar
@@ -78,6 +80,8 @@ public:
     size_t getWater() const {return m_water;}
     size_t getGold() const {return m_gold;}
     size_t getSonar() const {return m_sonar;}
+
+
 private:
     // player state
     size_t m_water;
@@ -92,6 +96,7 @@ public:
     Protester(int imageId, int x, int y, StudentWorld* world, int hp);
     virtual ~Protester() {}
     virtual void doSomething() = 0;
+    virtual void decreaseHp(int dmg) override;
     int isARestTick();
     bool getIsLeaving() { return m_isLeavingField; }
     void setIsLeaving(bool leavingField) { m_isLeavingField = leavingField; }
@@ -107,7 +112,7 @@ public:
     void setTicksToWaitBetweenMoves(int ticksToWaitBetweenMoves) { m_ticksToWaitBetweenMoves = ticksToWaitBetweenMoves; }
     int getStunTicks() { return m_stunTicks; }
     void decrementStunTicks() { m_stunTicks--; }
-    void setStunTicks() { m_stunTicks = 0; }
+    void setStunTicks() { m_stunTicks = m_maxStun; }
     void moveToLeaveLocation();
     void moveToPlayer();
     void pickRandomValidDirection();
@@ -115,7 +120,7 @@ public:
     void setCurrentDirection(MoveDirection currentDirection) { m_currentDirection = currentDirection; }
     bool canMoveTo(int x, int y);
     bool canMoveInDirection(MoveDirection dir);
-    // function that returns if the protester has direct line of sight of the iceman
+    // function that returns if the protester has direct line of sight of the 
     bool isFacingIceman(int icemanX, int icemanY) const;
     double getEuclidianDistanceTo(int x, int y) const;
     bool doSomethingPreAction();
@@ -124,6 +129,7 @@ public:
     void randomlyMove();
 private:
     int m_stunTicks;
+    int m_maxStun;
     int m_numSquaresToMoveInCurrentDirections;
     int m_ticksToWaitBetweenMoves;
     bool m_isLeavingField;
@@ -195,7 +201,6 @@ public:
     }
     ~Boulder() {};
     void doSomething() override;
-
 private:
     bool stable = true;
     int fallTimer = 0;
@@ -205,16 +210,15 @@ private:
 // Represents Water Squirt projectile coming from water gun
 class Squirt : public Object {
 public:
-    Squirt(int x, int y, Direction dir, StudentWorld* world) : Object(IID_WATER_SPURT, x, y, dir, 1, 1, world) {}
+    Squirt(int x, int y, Direction dir, StudentWorld* world) : Object(IID_WATER_SPURT, x, y, dir, 1, 1, world), m_distanceTravelled(0) {
+        setVisible(true);
+    }
     ~Squirt() {};
     void doSomething() override;
-
+    bool canMoveTo(int x, int y);
 private:
-
+    int m_distanceTravelled;
 };
-
-
-
 
 // --- Goodies Base Class Implementation ---
 // For consumables picked up by the player
