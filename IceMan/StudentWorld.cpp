@@ -43,9 +43,7 @@ void StudentWorld::startWorld() {
 
     // initialize the iceman
     m_player = std::make_shared<Iceman>(this);
-//    setBoulder();
-//    setOil();
-//    setGold();
+
     boulderFuture.get();
     oilFuture.get();
     goldFuture.get();
@@ -98,6 +96,7 @@ void StudentWorld::setStats() {
 
 // create boulders on field
 void StudentWorld::setBoulder() {
+    unique_lock<mutex> lock(setObjectLock);
     int level = getLevel();
     int num = min(level/2 + 2, 9);
     for (int i = 0; i < num; i++) {
@@ -115,13 +114,13 @@ void StudentWorld::setBoulder() {
             }
         }
         auto newBoulder = make_shared<Boulder>(x, y, this);
-        unique_lock<mutex> lock(setObjectLock);
         dsList.emplace_back(newBoulder);
         bList.emplace_back(newBoulder);
     }
 }
 // Add oil to the game
 void StudentWorld::setOil() {
+    unique_lock<mutex> lock(setObjectLock);
     int level = getLevel();
     int num = min(2 + level, 21);
     for (int i = 0; i < num; i++) {
@@ -134,13 +133,13 @@ void StudentWorld::setOil() {
                  || checkObjectDist(x, y));
 
         auto newOil = make_shared<OilBarrel>(x, y, this);
-        unique_lock<mutex> lock(setObjectLock);
         dsList.emplace_back(newOil);
         oList.emplace_back(newOil);
     }
 }
 // Add gold to the game
 void StudentWorld::setGold() {
+    unique_lock<mutex> lock(setObjectLock);
     int level = getLevel();
     int num = max(5 - level, 2);
     for (int i = 0; i < num; i++) {
@@ -153,7 +152,6 @@ void StudentWorld::setGold() {
                  || checkObjectDist(x, y));
 
         auto newGold = make_shared<Gold>(x, y, this);
-        unique_lock<mutex> lock(setObjectLock);
         dsList.emplace_back(newGold);
         gList.emplace_back(newGold);
     }
